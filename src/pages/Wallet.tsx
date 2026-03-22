@@ -32,10 +32,10 @@ const Wallet = () => {
     const animatedBalance = useAnimateCounter(1250);
 
     const transactions = [
-        { title: 'Sarah Chen - React Session', amount: -50, date: 'Today, 2:30 PM', status: 'Completed', category: 'Learning' },
-        { title: 'Weekly Teaching Reward', amount: 450, date: 'Yesterday', status: 'Added', category: 'Teaching' },
+        { title: 'Sarah Chen - React Sync', amount: -50, date: 'Today, 2:30 PM', status: 'Completed', category: 'Learning' },
+        { title: 'Concept Explanation Reward', amount: 450, date: 'Yesterday', status: 'Added', category: 'Teaching' },
         { title: 'Intro to Smart Contracts', amount: -75, date: 'Feb 20, 2026', status: 'Completed', category: 'Learning' },
-        { title: 'David K. - CSS Workshop', amount: 300, date: 'Feb 18, 2026', status: 'Earned', category: 'Teaching' },
+        { title: 'David K. - CSS Concept Sync', amount: 300, date: 'Feb 18, 2026', status: 'Earned', category: 'Teaching' },
     ];
 
     return (
@@ -51,16 +51,16 @@ const Wallet = () => {
                             animate={{ opacity: 1, x: 0 }}
                             className="text-4xl font-display font-bold"
                         >
-                            Credit Wallet
+                            Knowledge Wallet
                         </motion.h1>
-                        <p className="text-white/50 mt-1">Manage your SkillSwap credits and digital assets.</p>
+                        <p className="text-white/50 mt-1">Manage your ConceptSwap credits and Knowledge Exchange Units.</p>
                     </div>
                     <div className="flex gap-4">
                         <GlowButton variant="glass" size="sm" className="gap-2">
                             <History size={16} /> History
                         </GlowButton>
                         <GlowButton variant="purple" size="sm" className="gap-2">
-                            <Sparkles size={16} /> Earn Credits
+                            <Sparkles size={16} /> Explain a Concept
                         </GlowButton>
                     </div>
                 </header>
@@ -71,7 +71,7 @@ const Wallet = () => {
                         <GlassCard className="p-8 bg-gradient-to-br from-primary-purple/10 via-background to-primary-blue/10 border-primary-purple/20" hover={false}>
                             <div className="flex items-center gap-3 mb-8 text-white/40">
                                 <WalletIcon size={20} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Available Balance</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Knowledge Exchange Units</span>
                             </div>
                             <div className="flex items-baseline gap-2 mb-2">
                                 <div className="text-6xl font-display font-bold text-white tracking-tighter">
@@ -79,7 +79,7 @@ const Wallet = () => {
                                 </div>
                                 <span className="text-primary-blue font-bold text-lg">CR</span>
                             </div>
-                            <div className="text-sm text-white/30 mb-8 font-medium">Approx. 25 sessions available at Current Tier</div>
+                            <div className="text-sm text-white/30 mb-8 font-medium">Approx. 25 syncs available at Current Tier</div>
 
                             <div className="flex gap-4">
                                 <GlowButton variant="purple" fullWidth size="sm" className="shadow-glow-purple">Deposit</GlowButton>
@@ -90,7 +90,7 @@ const Wallet = () => {
                         <GlassCard className="p-6 border-primary-teal/20" hover={true}>
                             <div className="flex items-center justify-between mb-4">
                                 <h4 className="font-bold flex items-center gap-2 text-sm">
-                                    <Trophy size={18} className="text-primary-teal" /> Elite Facilitator
+                                    <Trophy size={18} className="text-primary-teal" /> Master Concept Guide
                                 </h4>
                                 <span className="text-[10px] font-black text-primary-teal bg-primary-teal/10 px-2 py-0.5 rounded-full uppercase tracking-widest">Lv. 4</span>
                             </div>
@@ -111,7 +111,7 @@ const Wallet = () => {
                                     </motion.div>
                                 </div>
                                 <p className="text-[10px] text-white/30 leading-relaxed font-medium">
-                                    Complete <span className="text-white/60">3 more teaching sessions</span> to unlock Tier 5 benefits.
+                                    Complete <span className="text-white/60">3 more concept syncs</span> to unlock Tier 5 benefits.
                                 </p>
                             </div>
                         </GlassCard>
@@ -135,7 +135,7 @@ const Wallet = () => {
                         <GlassCard className="p-8" hover={false}>
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xl font-display font-bold flex items-center gap-3">
-                                    <BarChart3 size={20} className="text-primary-blue" /> Earnings Analytics
+                                    <BarChart3 size={20} className="text-primary-blue" /> Knowledge Flow
                                 </h3>
                                 <div className="flex gap-2">
                                     {['7D', '30D', 'All'].map(t => (

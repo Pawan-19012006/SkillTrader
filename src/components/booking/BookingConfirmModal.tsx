@@ -21,7 +21,7 @@ interface BookingConfirmModalProps {
     bookingDetails: {
         date: Date;
         slot: string;
-        instructor: string;
+        guide: string;
         cost: number;
     } | null;
 }
@@ -81,8 +81,8 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                 className="space-y-12"
                             >
                                 <div>
-                                    <h2 className="text-3xl font-display font-bold mb-2">Confirm Booking</h2>
-                                    <p className="text-white/40">Please review your session details before initializing the protocol.</p>
+                                    <h2 className="text-3xl font-display font-bold mb-2">Confirm Concept Sync</h2>
+                                    <p className="text-white/40">Please review your concept details before initializing.</p>
                                 </div>
 
                                 <div className="space-y-6">
@@ -93,9 +93,9 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                                 <span className="text-2xl font-display font-bold">{bookingDetails.date.getDate()}</span>
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-lg">Advanced Framer Motion</h4>
+                                                <h4 className="font-bold text-lg">Recursion Explained Simply</h4>
                                                 <div className="flex items-center gap-2 text-white/40 text-sm mt-1">
-                                                    <User size={14} /> {bookingDetails.instructor}
+                                                    <User size={14} /> {bookingDetails.guide}
                                                 </div>
                                             </div>
                                         </div>
@@ -104,7 +104,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
                                             <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-1 flex items-center gap-2">
-                                                <Clock size={12} /> Time Slot
+                                                <Clock size={12} /> Sync Slot
                                             </div>
                                             <div className="font-bold">{bookingDetails.slot}</div>
                                         </div>
@@ -127,7 +127,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                         <span className="font-display font-bold text-primary-teal">{currentBalance - bookingDetails.cost}</span>
                                     </div>
                                     <GlowButton onClick={handleConfirm} variant="purple" fullWidth size="lg" className="py-5 shadow-glow-purple group">
-                                        Initialze Booking <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
+                                        Initialze Sync <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
                                     </GlowButton>
                                 </div>
                             </motion.div>
@@ -172,12 +172,12 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
 
                                 <div className="space-y-4 max-w-sm">
                                     <h2 className="text-4xl font-display font-bold">
-                                        {step === 'deducting' ? 'Processing...' : 'Protocol Sync Complete'}
+                                        {step === 'deducting' ? 'Processing...' : 'Concept Sync Initialized'}
                                     </h2>
                                     <p className="text-white/40 leading-relaxed">
                                         {step === 'deducting'
-                                            ? 'Authenticating transaction and generating meeting protocols. Please stand by.'
-                                            : 'Your session has been securely booked. The meeting link is now active in your dashboard.'}
+                                            ? 'Authenticating transaction and generating sync protocols. Please stand by.'
+                                            : 'Your concept session has been securely booked. The sync link is now active in your dashboard.'}
                                     </p>
                                 </div>
 
@@ -190,10 +190,10 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                     >
                                         <GlassCard className="p-6 text-left border-primary-teal/20" hover={false}>
                                             <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-primary-teal mb-4">
-                                                <Video size={14} /> Secret Meeting Link
+                                                <Video size={14} /> Secret Sync Link
                                             </div>
                                             <code className="block bg-black/40 p-3 rounded-xl text-primary-blue text-sm font-mono break-all">
-                                                https://meet.skillswap.protocol/arc-742-nmx
+                                                https://meet.conceptswap.io/arc-742-nmx
                                             </code>
                                         </GlassCard>
 

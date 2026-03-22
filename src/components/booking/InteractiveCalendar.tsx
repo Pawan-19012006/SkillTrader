@@ -101,7 +101,7 @@ const InteractiveCalendar = ({ onSelectSlot }: InteractiveCalendarProps) => {
                             className="space-y-6"
                         >
                             <h4 className="text-sm font-black uppercase tracking-widest text-white/30 flex items-center gap-2">
-                                <Clock size={14} /> Available Times
+                                <Clock size={14} /> Sync Windows
                             </h4>
                             <div className="grid grid-cols-1 gap-3">
                                 {timeSlots.map(slot => (
@@ -131,7 +131,7 @@ const InteractiveCalendar = ({ onSelectSlot }: InteractiveCalendarProps) => {
                     ) : (
                         <div className="flex items-center justify-center h-full border border-dashed border-white/5 rounded-3xl p-8 text-center bg-white/[0.01]">
                             <p className="text-white/20 text-sm font-medium italic">
-                                Select a date from the calendar <br /> to view available time slots.
+                                Select a date from the calendar <br /> to view available sync windows.
                             </p>
                         </div>
                     )}

@@ -75,8 +75,11 @@ const Dashboard = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
-                        <h1 className="text-4xl font-display font-bold mb-2">Welcome Back, <span className="text-primary-purple">Protocol_User</span></h1>
-                        <p className="text-white/40">Your skill exchange synchronization is optimal today.</p>
+                        <h1 className="text-4xl font-display font-bold mb-2">Welcome Back, <span className="text-primary-purple">Alex</span></h1>
+                        <p className="text-white/40 font-medium">
+                            Your concept synchronization is optimal today. <br />
+                            <span className="text-primary-purple/60 italic text-sm">"Like a friend explaining before an exam." — Clarity over complexity.</span>
+                        </p>
                     </motion.div>
 
                     <div className="flex gap-4">
@@ -84,7 +87,7 @@ const Dashboard = () => {
                             <Activity size={16} /> Analytics
                         </GlowButton>
                         <GlowButton variant="purple" size="sm" className="gap-2">
-                            <Zap size={16} /> New Session
+                            <Zap size={16} /> New Concept Sync
                         </GlowButton>
                     </div>
                 </div>
@@ -93,9 +96,9 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                     {[
                         { label: 'Available Credits', value: animatedCredits, icon: Zap, color: 'text-primary-blue' },
-                        { label: 'Sessions Completed', value: animatedSessions, icon: CheckCircle2, color: 'text-primary-teal' },
+                        { label: 'Concepts Mastered', value: animatedSessions, icon: CheckCircle2, color: 'text-primary-teal' },
                         { label: 'Community Rank', value: 'Top 5%', icon: Shield, color: 'text-primary-purple' },
-                        { label: 'Success Rate', value: '98.4%', icon: TrendingUp, color: 'text-primary-blue' }
+                        { label: 'Sync Success Rate', value: '98.4%', icon: TrendingUp, color: 'text-primary-blue' }
                     ].map((stat, i) => (
                         <GlassCard key={i} delay={i * 0.1} className="p-6">
                             <div className="flex items-center justify-between mb-4">
@@ -116,7 +119,7 @@ const Dashboard = () => {
                     {/* Upcoming Sessions */}
                     <div className="lg:col-span-2 space-y-6">
                         <h3 className="text-xl font-display font-bold flex items-center gap-2">
-                            <Clock3 className="text-primary-purple" size={20} /> Upcoming Syncs
+                            <Clock3 className="text-primary-purple" size={20} /> Upcoming Concept Syncs
                         </h3>
                         <div className="space-y-4">
                             {upcomingSessions.map((session, i) => (
@@ -130,7 +133,7 @@ const Dashboard = () => {
                                                 <div className="text-[10px] text-primary-teal font-black uppercase tracking-widest mb-1">{session.type}</div>
                                                 <h4 className="text-lg font-bold group-hover:text-primary-purple transition-colors">{session.title}</h4>
                                                 <div className="text-sm text-white/40 flex items-center gap-2 mt-1">
-                                                    <Clock size={14} /> {session.instructor}
+                                                    <Clock size={14} /> Concept Guide: {session.instructor}
                                                 </div>
                                             </div>
                                         </div>

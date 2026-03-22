@@ -17,9 +17,9 @@ const Navbar = () => {
     }, []);
 
     const navLinks = [
-        { name: 'Explore', path: '/explore', icon: <Search size={18} /> },
-        { name: 'Scheduler', path: '/scheduler', icon: <Rocket size={18} /> },
-        { name: 'Wallet', path: '/wallet', icon: <Wallet size={18} /> },
+        { name: 'Explore Concepts', path: '/explore', icon: <Search size={18} /> },
+        { name: 'Sync Scheduler', path: '/scheduler', icon: <Rocket size={18} /> },
+        { name: 'Knowledge Wallet', path: '/wallet', icon: <Wallet size={18} /> },
     ];
 
     return (
@@ -32,9 +32,12 @@ const Navbar = () => {
                     <div className="w-10 h-10 bg-gradient-to-br from-primary-purple to-primary-blue rounded-xl flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
                         <Rocket className="text-[#0a0a0c]" />
                     </div>
-                    <span className="text-2xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
-                        SkillSwap
-                    </span>
+                    <div className="flex flex-col">
+                        <span className="text-2xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                            ConceptSwap
+                        </span>
+                        <span className="text-[8px] uppercase tracking-[0.3em] text-primary-teal font-black -mt-1 opacity-60">Clarity over complexity</span>
+                    </div>
                 </Link>
 
                 {/* Desktop Nav */}

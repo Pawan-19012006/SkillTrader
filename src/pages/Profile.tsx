@@ -7,11 +7,11 @@ import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
 
 const Profile = () => {
-    const skillsOffered = ['React Architecture', 'Framer Motion', 'UI Design Systems', 'Web3 Protocols'];
-    const skillsWanted = ['Advanced Rust', 'Zero Knowledge Proofs', 'Creative Writing'];
+    const conceptsOffered = ['React Architecture', 'Framer Motion', 'UI Design Systems', 'Web3 Protocols'];
+    const conceptsWanted = ['Advanced Rust', 'Zero Knowledge Proofs', 'Creative Writing'];
     const reviews = [
-        { name: 'Marcus V.', rating: 5, comment: 'Incredible instructor! Sarah made complex animations feel like childs play.', date: '2 days ago' },
-        { name: 'Elena R.', rating: 5, comment: 'One of the best sessions I have had on the platform. Highly recommended.', date: '1 week ago' },
+        { name: 'Marcus V.', rating: 5, comment: 'Incredible Concept Guide! Sarah explained complex animations simply.', date: '2 days ago' },
+        { name: 'Elena R.', rating: 5, comment: 'One of the best concept syncs I have had. Instant clarity.', date: '1 week ago' },
     ];
 
     return (
@@ -47,7 +47,7 @@ const Profile = () => {
 
                                 <div className="flex flex-wrap justify-center md:justify-start gap-6 text-white/50 mb-8">
                                     <div className="flex items-center gap-2"><MapPin size={16} /> Neo-Tokyo, District 7</div>
-                                    <div className="flex items-center gap-2"><BookOpen size={16} /> 124 Sessions Hosted</div>
+                                    <div className="flex items-center gap-2"><BookOpen size={16} /> 124 Concepts Explained</div>
                                     <div className="flex items-center gap-2 text-primary-teal font-bold">
                                         <Star size={16} fill="currentColor" /> 5.0 (214 Reviews)
                                     </div>
@@ -78,10 +78,10 @@ const Profile = () => {
                     <div className="lg:col-span-2 space-y-8">
                         <GlassCard hover={false}>
                             <h3 className="text-xl font-display font-bold mb-6 flex items-center gap-2">
-                                <TrendingUp size={20} className="text-primary-blue" /> Skills Offered
+                                <TrendingUp size={20} className="text-primary-blue" /> Concepts Explained
                             </h3>
                             <div className="flex flex-wrap gap-3">
-                                {skillsOffered.map((skill, i) => (
+                                {conceptsOffered.map((skill, i) => (
                                     <span key={i} className="px-4 py-2 rounded-xl bg-primary-blue/5 border border-primary-blue/10 text-primary-blue text-sm font-medium hover:bg-primary-blue/10 transition-colors cursor-default">
                                         {skill}
                                     </span>
@@ -92,7 +92,7 @@ const Profile = () => {
                                 <Search size={20} className="text-primary-purple" /> Currently Learning
                             </h3>
                             <div className="flex flex-wrap gap-3">
-                                {skillsWanted.map((skill, i) => (
+                                {conceptsWanted.map((skill, i) => (
                                     <span key={i} className="px-4 py-2 rounded-xl bg-primary-purple/5 border border-primary-purple/10 text-primary-purple text-sm font-medium hover:bg-primary-purple/10 transition-colors cursor-default">
                                         {skill}
                                     </span>

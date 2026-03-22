@@ -24,7 +24,7 @@ const SessionDetails = () => {
     const [bookingDetails, setBookingDetails] = useState<{
         date: Date;
         slot: string;
-        instructor: string;
+        guide: string;
         cost: number;
         title: string;
     } | null>(null);
@@ -33,9 +33,9 @@ const SessionDetails = () => {
         setBookingDetails({
             date,
             slot,
-            instructor: "Sarah Chen",
-            cost: 75,
-            title: "Advanced Framer Motion: Layout Magic"
+            guide: "Sarah Chen",
+            cost: 50,
+            title: "Recursion Explained Simply"
         });
     };
 
@@ -46,7 +46,7 @@ const SessionDetails = () => {
 
             <main className="pt-28 pb-20 px-6 max-w-7xl mx-auto">
                 <Link to="/explore" className="inline-flex items-center gap-2 text-white/40 hover:text-white mb-12 transition-colors group">
-                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back to Marketplace
+                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back to Concept Marketplace
                 </Link>
 
                 {/* Hero Section */}
@@ -64,7 +64,7 @@ const SessionDetails = () => {
                                 className="flex items-center gap-3 mb-6"
                             >
                                 <span className="px-3 py-1 rounded-full bg-primary-purple/20 text-primary-purple border border-primary-purple/30 text-[10px] font-bold uppercase tracking-[0.2em]">
-                                    Elite Workshop {id && <span className="text-white/20 ml-1">#{id}</span>}
+                                    Quick Concept Sync {id && <span className="text-white/20 ml-1">#{id}</span>}
                                 </span>
                                 <div className="flex items-center gap-1 text-primary-teal text-sm font-bold">
                                     <Star size={14} fill="currentColor" /> 4.9 (128 Reviews)
@@ -72,14 +72,14 @@ const SessionDetails = () => {
                             </motion.div>
 
                             <h1 className="text-5xl md:text-7xl font-display font-bold mb-8 leading-tight">
-                                Advanced Framer Motion: <br />
+                                Recursion <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-blue to-primary-teal">
-                                    Layout Magic
+                                    Explained Simply
                                 </span>
                             </h1>
 
                             <p className="text-xl text-white/60 leading-relaxed max-w-2xl font-light">
-                                Master the Magic of Shared Layout Transitions and Layout Props to create fluid, cinematic user interfaces that feel alive.
+                                Understand how functions call themselves through elegant, mental-model driven explanations. Like a friend helping you before an exam.
                             </p>
                         </div>
 
@@ -90,7 +90,7 @@ const SessionDetails = () => {
                                 </div>
                                 <div>
                                     <div className="text-[10px] text-white/30 uppercase font-black tracking-widest">Duration</div>
-                                    <div className="font-bold">45 Minutes</div>
+                                    <div className="font-bold">30 Minutes</div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -115,10 +115,10 @@ const SessionDetails = () => {
 
                         <div className="flex gap-4 pt-4">
                             <GlowButton onClick={() => setIsBookingOpen(true)} variant="purple" size="lg" className="px-12 py-5 text-lg shadow-glow-purple">
-                                Book This Session
+                                Book Concept Sync
                             </GlowButton>
                             <GlowButton variant="glass" size="lg" className="px-8 flex items-center gap-2">
-                                <MessageSquare size={18} /> Chat with Instructor
+                                <MessageSquare size={18} /> Chat with Concept Guide
                             </GlowButton>
                         </div>
                     </motion.div>
@@ -136,12 +136,12 @@ const SessionDetails = () => {
                                     </div>
                                 </div>
                                 <h3 className="text-2xl font-display font-bold">Sarah Chen</h3>
-                                <p className="text-primary-teal text-sm font-bold uppercase tracking-widest mt-1">Elite Tier Coach</p>
+                                <p className="text-primary-teal text-sm font-bold uppercase tracking-widest mt-1">Master Concept Guide</p>
                             </div>
 
                             <div className="space-y-6 text-sm">
                                 <p className="text-white/50 leading-relaxed text-center italic">
-                                    "I specialize in high-performance React applications and immersive motion systems. My mission is to make the web feel alive."
+                                    "I specialize in breaking down complex CS concepts into simple, visual mental models. I help you understand the 'why' before the 'how'."
                                 </p>
 
                                 <div className="pt-6 border-t border-white/5 space-y-4">
@@ -168,14 +168,14 @@ const SessionDetails = () => {
                     <div className="lg:col-span-8 space-y-16">
                         <div className="space-y-8">
                             <h2 className="text-3xl font-display font-bold flex items-center gap-4">
-                                <Target className="text-primary-purple" /> What You Will Learn
+                                <Target className="text-primary-purple" /> What You Will Understand
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[
-                                    { title: "Layout Prop Mastery", desc: "Understanding the physics behind Framer Motion's layout prop." },
-                                    { title: "Shared Layout Transitions", desc: "Creating cinematic transitions between different page states." },
-                                    { title: "High-Performance SVGs", desc: "Animating complex shapes without sacrificing framerate." },
-                                    { title: "Micro-Interaction Systems", desc: "Building a consistent motion language for your SaaS components." }
+                                    { title: "The Call Stack", desc: "Visualize how the computer tracks nested function calls." },
+                                    { title: "Base Case Logic", desc: "Designing stop conditions to prevent infinite loops." },
+                                    { title: "Recursive Thinking", desc: "Breaking problems into smaller, identical sub-problems." },
+                                    { title: "Visual Tracing", desc: "Learn to trace recursive flows without getting lost." }
                                 ].map((item, i) => (
                                     <GlassCard key={i} className="p-6 bg-white/[0.02]" hover={true}>
                                         <h4 className="font-bold text-primary-teal mb-2">{item.title}</h4>
@@ -192,9 +192,9 @@ const SessionDetails = () => {
                             <GlassCard className="p-8" hover={false}>
                                 <ul className="space-y-4">
                                     {[
-                                        "Intermediate knowledge of React (Hooks, state management)",
-                                        "Basic understanding of Tailwind CSS utilities",
-                                        "A passion for creating high-fidelity interactive experiences"
+                                        "Basic understanding of functions and variables",
+                                        "Familiarity with any programming language (JS, Python, etc.)",
+                                        "A desire for mental clarity over rote memorization"
                                     ].map((item, i) => (
                                         <li key={i} className="flex items-start gap-4 text-white/60">
                                             <div className="w-1.5 h-1.5 rounded-full bg-primary-blue mt-2 shadow-[0_0_8px_rgba(0,212,255,1)]" />
@@ -227,8 +227,8 @@ const SessionDetails = () => {
                             className="relative w-full max-w-2xl h-full bg-background border-l border-white/10 p-8 md:p-12 overflow-y-auto"
                         >
                             <div className="mb-12">
-                                <h2 className="text-4xl font-display font-bold mb-2">Select Your Slot</h2>
-                                <p className="text-white/40">Synchronize your timeline with Sarah Chen's expertise.</p>
+                                <h2 className="text-4xl font-display font-bold mb-2">Select Sync Slot</h2>
+                                <p className="text-white/40">Synchronize your timeline with Sarah Chen's clarity.</p>
                             </div>
 
                             <InteractiveCalendar onSelectSlot={handleSelectSlot} />

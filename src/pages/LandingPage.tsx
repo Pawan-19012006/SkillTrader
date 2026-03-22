@@ -8,14 +8,14 @@ import AnimatedBackground from '../components/ui/AnimatedBackground';
 const LandingPage = () => {
     const stats = [
         { label: 'Active Learners', value: '12K+', icon: <Users className="text-primary-blue" /> },
-        { label: 'Skills Exchanged', value: '45K+', icon: <Zap className="text-primary-purple" /> },
-        { label: 'Trust Rating', value: '4.9/5', icon: <Star className="text-primary-teal" /> },
+        { label: 'Concepts Explained', value: '45K+', icon: <Zap className="text-primary-purple" /> },
+        { label: 'Clarity Rating', value: '4.9/5', icon: <Star className="text-primary-teal" /> },
     ];
 
     const features = [
         {
-            title: 'Micro-Sessions',
-            desc: 'Learn high-impact skills in 30-minute intense sessions.',
+            title: 'Concept Sprints',
+            desc: 'Understand high-impact concepts in 15-30 minute intense sessions.',
             icon: <Zap className="w-10 h-10 text-primary-purple" />
         },
         {
@@ -44,24 +44,24 @@ const LandingPage = () => {
                         transition={{ duration: 0.6 }}
                     >
                         <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium mb-6 text-primary-blue animate-pulse-glow">
-                            Introducing SkillSwap v2.0
+                            Introducing ConceptSwap v2.0
                         </span>
                         <h1 className="text-6xl md:text-8xl font-display font-bold tracking-tight mb-8">
-                            Teach. Learn. <br />
+                            Explain. Learn. <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-purple via-primary-blue to-primary-teal">
-                                Earn Your Status.
+                                Share Your Clarity.
                             </span>
                         </h1>
                         <p className="text-xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed">
-                            The futuristic marketplace for Peer-to-Peer knowledge exchange.
-                            Teach your mastery, earn credits, and unlock incredible new skills from global experts.
+                            The micro-learning marketplace for Peer-to-Peer concept synchronization. <br />
+                            <span className="text-white/40">Understand concepts, not courses. Learn what you need, when you need it.</span>
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                             <GlowButton size="lg" variant="purple" className="min-w-[200px]">
-                                Start Learning Now <ArrowRight size={20} />
+                                Understand a Concept <ArrowRight size={20} />
                             </GlowButton>
                             <GlowButton size="lg" variant="glass" className="min-w-[200px]">
-                                Explore Marketplace
+                                Explore Concept Marketplace
                             </GlowButton>
                         </div>
                     </motion.div>
@@ -109,9 +109,9 @@ const LandingPage = () => {
                     <div className="absolute top-0 right-0 w-1/2 h-full bg-primary-purple/10 blur-[100px] pointer-events-none" />
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12 p-8 md:p-12">
                         <div className="text-left max-w-xl">
-                            <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">Ready to upgrade your skill set?</h2>
+                            <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">Need instant clarity on a concept?</h2>
                             <p className="text-lg text-white/60">
-                                Join thousands of peers swapping knowledge across coding, design, business, and creative arts.
+                                Join thousands of peers explaining complex topics simply. Like a friend helping you before an exam.
                             </p>
                         </div>
                         <GlowButton variant="teal" size="lg" className="whitespace-nowrap">
@@ -123,7 +123,7 @@ const LandingPage = () => {
 
             {/* Footer */}
             <footer className="py-12 px-6 text-center text-white/30 text-sm border-t border-white/5">
-                <p>&copy; 2026 SkillSwap Protocol. Built for the future of education.</p>
+                <p>&copy; 2026 ConceptSwap Protocol. Clarity over complexity.</p>
             </footer>
         </div>
     );
