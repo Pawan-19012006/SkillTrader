@@ -45,14 +45,14 @@ const Navbar = () => {
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-6">
+                <div className="hidden lg:flex items-center gap-8">
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
                             to={link.path}
                             className={cn(
-                                "flex items-center gap-2 text-sm font-semibold transition-colors nav-link",
-                                location.pathname === link.path ? "text-white bg-zinc-800" : "text-zinc-400"
+                                "flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-white",
+                                location.pathname === link.path ? "text-indigo-500" : "text-zinc-500"
                             )}
                         >
                             {link.name}

@@ -40,6 +40,12 @@ const Messages = () => {
         );
 
         const unsubscribe = onSnapshot(chatsQuery, async (snapshot) => {
+            if (snapshot.empty) {
+                setChats([]);
+                setLoading(false);
+                return;
+            }
+
             const chatsData = await Promise.all(snapshot.docs.map(async (chatDoc) => {
                 const data = chatDoc.data();
                 const otherUserId = data.participants.find((id: string) => id !== user.uid);
@@ -180,7 +186,10 @@ const Messages = () => {
                             ) : chats.length === 0 ? (
                                 <div className="py-20 text-center px-6">
                                     <MessageSquare className="mx-auto text-zinc-900 mb-4" size={32} />
-                                    <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest">No active synchronization channels detected.</p>
+                                    <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest leading-relaxed">
+                                        No active synchronization channels detected.<br/>
+                                        <span className="text-zinc-800">Start a conversation from profile or sessions.</span>
+                                    </p>
                                 </div>
                             ) : (
                                 chats.map((chat) => (

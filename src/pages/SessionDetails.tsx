@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     Clock,
     MessageSquare,
@@ -18,7 +18,7 @@ import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import BookingConfirmModal from '../components/booking/BookingConfirmModal';
 import { db } from '../lib/firebase';
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../utils/cn';
 
@@ -42,6 +42,35 @@ const SessionDetails = () => {
     } | null>(null);
 
     const isOwner = session?.creatorId === user?.uid;
+
+    const navigate = useNavigate();
+
+    const handleMessage = async () => {
+        if (!user || !session?.creatorId) return;
+        
+        // Search for existing chat
+        const chatsQuery = query(
+            collection(db, 'chats'),
+            where('participants', 'array-contains', user.uid)
+        );
+        const querySnapshot = await getDocs(chatsQuery);
+        const existingChat = querySnapshot.docs.find(doc => doc.data().participants.includes(session.creatorId));
+
+        if (existingChat) {
+            navigate(`/messages?chatId=${existingChat.id}`);
+            return;
+        }
+
+        // Create new chat
+        const chatId = [user.uid, session.creatorId].sort().join('_');
+        await setDoc(doc(db, 'chats', chatId), {
+            participants: [user.uid, session.creatorId],
+            updatedAt: serverTimestamp(),
+            lastMessage: `Synchronization initialized regarding: ${session.title}`
+        });
+        
+        navigate(`/messages?chatId=${chatId}`);
+    };
 
     useEffect(() => {
         const fetchSession = async () => {
@@ -214,7 +243,13 @@ const SessionDetails = () => {
                                         >
                                             {isOwner ? 'Locked: Your Session' : 'Access Sync Ledger'}
                                         </GlowButton>
-                                        <GlowButton variant="glass" size="lg" className="px-8 flex items-center gap-2 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]">
+                                        <GlowButton 
+                                            onClick={handleMessage}
+                                            variant="glass" 
+                                            size="lg" 
+                                            className="px-8 flex items-center gap-2 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]"
+                                            disabled={isOwner}
+                                        >
                                             <MessageSquare size={18} /> Contact Guide
                                         </GlowButton>
                                     </div>

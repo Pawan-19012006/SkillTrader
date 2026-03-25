@@ -14,7 +14,7 @@ import {
     Save,
     MessageSquare
 } from 'lucide-react';
-import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, limit, getDoc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, limit, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
@@ -51,12 +51,18 @@ const Profile = () => {
         photoURL: ''
     });
 
+    // Connections
+    const [activeTab, setActiveTab] = useState<'ledger' | 'followers' | 'following'>('ledger');
+    const [followerUsers, setFollowerUsers] = useState<any[]>([]);
+    const [followingUsers, setFollowingUsers] = useState<any[]>([]);
+    const [loadingConnections, setLoadingConnections] = useState(false);
+
     useEffect(() => {
         if (!targetUid) return;
 
         // Fetch User Data
         const userRef = doc(db, 'users', targetUid);
-        const unsubUser = onSnapshot(userRef, (snapshot) => {
+        const unsubUser = onSnapshot(userRef, async (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.data();
                 setProfileUser(data);
@@ -70,6 +76,39 @@ const Profile = () => {
                         displayName: data.displayName || '',
                         photoURL: data.photoURL || ''
                     });
+                }
+
+                // Fetch connection details if tabs are active
+                if (activeTab === 'followers' || activeTab === 'following') {
+                    setLoadingConnections(true);
+                    const connectionIds = activeTab === 'followers' ? (data.followers || []) : (data.following || []);
+                    
+                    if (connectionIds.length > 0) {
+                        try {
+                            const fetchedUsers: any[] = [];
+                            // Firestore 'in' queries are limited to 10-30 items depending on sdk version, 
+                            // but usually it's better to chunk.
+                            const chunks = [];
+                            for (let i = 0; i < connectionIds.length; i += 10) {
+                                chunks.push(connectionIds.slice(i, i + 10));
+                            }
+
+                            for (const chunk of chunks) {
+                                const q = query(collection(db, 'users'), where('uid', 'in', chunk));
+                                const snaps = await getDocs(q);
+                                fetchedUsers.push(...snaps.docs.map(d => d.data()));
+                            }
+                            
+                            if (activeTab === 'followers') setFollowerUsers(fetchedUsers);
+                            else setFollowingUsers(fetchedUsers);
+                        } catch (err) {
+                            console.error("Error fetching connection details:", err);
+                        }
+                    } else {
+                        if (activeTab === 'followers') setFollowerUsers([]);
+                        else setFollowingUsers([]);
+                    }
+                    setLoadingConnections(false);
                 }
             }
         });
@@ -117,7 +156,7 @@ const Profile = () => {
             unsubUser();
             if (unsubTx) unsubTx();
         };
-    }, [targetUid, currentUser, isOwnProfile]);
+    }, [targetUid, currentUser, isOwnProfile, activeTab]);
 
     const handleUpdateProfile = async () => {
         if (!currentUser) return;
@@ -134,20 +173,32 @@ const Profile = () => {
         }
     };
 
-    const handleMessage = async () => {
-        if (!currentUser || !targetUid) return;
+    const handleMessage = async (specificUid?: string) => {
+        const initiator = currentUser;
+        const recipientUid = specificUid || targetUid;
+        if (!initiator || !recipientUid) return;
         
-        const chatId = [currentUser.uid, targetUid].sort().join('_');
-        const chatRef = doc(db, 'chats', chatId);
-        const chatSnap = await getDoc(chatRef);
+        // Search for existing chat
+        const chatsQuery = query(
+            collection(db, 'chats'),
+            where('participants', 'array-contains', initiator.uid)
+        );
+        const querySnapshot = await getDocs(chatsQuery);
+        const existingChat = querySnapshot.docs.find(doc => doc.data().participants.includes(recipientUid));
 
-        if (!chatSnap.exists()) {
-            await setDoc(chatRef, {
-                participants: [currentUser.uid, targetUid],
-                updatedAt: serverTimestamp(),
-                lastMessage: 'Synchronization context established.'
-            });
+        if (existingChat) {
+            navigate(`/messages?chatId=${existingChat.id}`);
+            return;
         }
+
+        // Create new chat
+        const chatId = [initiator.uid, recipientUid].sort().join('_');
+        await setDoc(doc(db, 'chats', chatId), {
+            participants: [initiator.uid, recipientUid],
+            updatedAt: serverTimestamp(),
+            lastMessage: 'Synchronization context established.'
+        });
+        
         navigate(`/messages?chatId=${chatId}`);
     };
 
@@ -213,7 +264,7 @@ const Profile = () => {
                                     <div className="w-full flex gap-3">
                                         <FollowButton targetUserId={targetUid!} className="flex-grow py-4" size="md" />
                                         <GlowButton 
-                                            onClick={handleMessage}
+                                            onClick={() => handleMessage()}
                                             disabled={!isLearnedFrom}
                                             variant="glass" 
                                             className="flex-grow py-4 uppercase text-[10px] font-bold tracking-widest gap-2"
@@ -269,55 +320,128 @@ const Profile = () => {
                         </GlassCard>
                     </aside>
 
-                    {/* Transaction Ledger Column */}
+                    {/* Interactive Tabbed Content */}
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                             <div>
                                 <h2 className="text-3xl font-display font-bold text-white uppercase italic tracking-tighter leading-none mb-2">
-                                    Protocol <span className="text-indigo-600">Ledger</span>
+                                    Synchronization <span className="text-indigo-600">Protocol</span>
                                 </h2>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Historical Transaction Audit</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Active Academic Exchange Ledger</p>
+                            </div>
+
+                            <div className="flex bg-zinc-900/50 p-1 border border-zinc-900">
+                                {[
+                                    { id: 'ledger', label: 'Audit Ledger' },
+                                    { id: 'followers', label: 'Followers' },
+                                    { id: 'following', label: 'Following' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id as any)}
+                                        className={cn(
+                                            "px-4 py-2 text-[8px] font-black uppercase tracking-[0.2em] transition-all",
+                                            activeTab === tab.id 
+                                                ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.3)]" 
+                                                : "text-zinc-600 hover:text-zinc-400"
+                                        )}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            {loading ? (
-                                <div className="py-24 flex justify-center">
-                                    <div className="w-8 h-8 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-                                </div>
-                            ) : transactions.length === 0 ? (
-                                <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
-                                    <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">No sync history detected.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {transactions.map((tx) => (
-                                        <GlassCard key={tx.id} className="p-5 bg-zinc-900/40 border-zinc-800 group rounded-none" hover={true}>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-5">
+                            {activeTab === 'ledger' && (
+                                loading ? (
+                                    <div className="py-24 flex justify-center">
+                                        <div className="w-8 h-8 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                                    </div>
+                                ) : transactions.length === 0 ? (
+                                    <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
+                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">No sync history detected.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {transactions.map((tx) => (
+                                            <GlassCard key={tx.id} className="p-5 bg-zinc-900/40 border-zinc-800 group rounded-none" hover={true}>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-5">
+                                                        <div className={cn(
+                                                            "w-12 h-12 flex items-center justify-center rounded-none border",
+                                                            tx.type === 'credit' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-red-500/10 border-red-500/20 text-red-500"
+                                                        )}>
+                                                            {tx.type === 'credit' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[11px] font-bold text-white uppercase tracking-widest">{tx.title}</h4>
+                                                            <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">
+                                                                {tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : 'Processing...'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                     <div className={cn(
-                                                        "w-12 h-12 flex items-center justify-center rounded-none border",
-                                                        tx.type === 'credit' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-red-500/10 border-red-500/20 text-red-500"
+                                                        "text-lg font-display font-bold tabular-nums tracking-tighter",
+                                                        tx.type === 'credit' ? "text-emerald-500" : "text-red-500"
                                                     )}>
-                                                        {tx.type === 'credit' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                                        {tx.type === 'credit' ? '+' : '-'}{tx.amount}
+                                                    </div>
+                                                </div>
+                                            </GlassCard>
+                                        ))}
+                                    </div>
+                                )
+                            )}
+
+                            {(activeTab === 'followers' || activeTab === 'following') && (
+                                loadingConnections ? (
+                                    <div className="py-24 flex justify-center">
+                                        <div className="w-8 h-8 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                                    </div>
+                                ) : (activeTab === 'followers' ? followerUsers : followingUsers).length === 0 ? (
+                                    <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
+                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">
+                                            {activeTab === 'followers' ? 'No followers yet.' : "You're not following anyone yet."}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {(activeTab === 'followers' ? followerUsers : followingUsers).map((u) => (
+                                            <GlassCard key={u.uid} className="p-4 bg-zinc-900/60 border-zinc-800 flex items-center justify-between rounded-none" hover={true}>
+                                                <div className="flex items-center gap-4">
+                                                    <div 
+                                                        className="w-10 h-10 bg-zinc-950 border border-zinc-800 cursor-pointer overflow-hidden"
+                                                        onClick={() => navigate(`/profile/${u.uid}`)}
+                                                    >
+                                                        <img 
+                                                            src={u.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.uid}`} 
+                                                            className="w-full h-full object-cover grayscale opacity-80" alt="" 
+                                                        />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-[11px] font-bold text-white uppercase tracking-widest">{tx.title}</h4>
-                                                        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">
-                                                            {tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : 'Processing...'}
+                                                        <h4 
+                                                            className="text-[10px] font-bold text-white uppercase tracking-widest cursor-pointer hover:text-indigo-400 transition-colors"
+                                                            onClick={() => navigate(`/profile/${u.uid}`)}
+                                                        >
+                                                            {u.displayName || u.name}
+                                                        </h4>
+                                                        <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5 italic truncate max-w-[120px]">
+                                                            {u.email}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className={cn(
-                                                    "text-lg font-display font-bold tabular-nums tracking-tighter",
-                                                    tx.type === 'credit' ? "text-emerald-500" : "text-red-500"
-                                                )}>
-                                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
-                                                </div>
-                                            </div>
-                                        </GlassCard>
-                                    ))}
-                                </div>
+                                                <GlowButton 
+                                                    onClick={() => handleMessage(u.uid)}
+                                                    variant="glass" 
+                                                    className="px-4 py-2 text-[8px] font-black uppercase tracking-widest"
+                                                >
+                                                    Message
+                                                </GlowButton>
+                                            </GlassCard>
+                                        ))}
+                                    </div>
+                                )
                             )}
                         </div>
                     </div>
