@@ -16,24 +16,24 @@ const GlowButton = ({
     ...props
 }: GlowButtonProps) => {
     const variants = {
-        purple: 'bg-primary-purple hover:glow-purple text-white shadow-glow-purple',
-        blue: 'bg-primary-blue hover:glow-blue text-[#0a0a0c] shadow-glow-blue font-bold',
-        teal: 'bg-primary-teal text-[#0a0a0c] font-bold shadow-[0_0_20px_rgba(0,255,163,0.3)]',
-        glass: 'bg-white/5 border border-white/10 text-white hover:bg-white/10',
+        purple: 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm',
+        blue: 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-sm font-bold',
+        teal: 'bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700',
+        glass: 'bg-zinc-900 border border-zinc-800 text-zinc-100 hover:bg-zinc-800',
     };
 
     const sizes = {
         sm: 'px-4 py-2 text-sm',
-        md: 'px-6 py-3 text-base',
-        lg: 'px-8 py-4 text-lg',
+        md: 'px-6 py-2.5 text-sm',
+        lg: 'px-8 py-3.5 text-base',
     };
 
     return (
         <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             className={cn(
-                "rounded-full font-semibold transition-all duration-300 flex items-center justify-center gap-2",
+                "rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2",
                 variants[variant],
                 sizes[size],
                 fullWidth ? 'w-full' : '',

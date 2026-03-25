@@ -17,8 +17,8 @@ const GlassCard = ({ children, className, delay = 0, hover = true }: GlassCardPr
     const mouseXSpring = useSpring(x);
     const mouseYSpring = useSpring(y);
 
-    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
+    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!ref.current || !hover) return;
@@ -46,37 +46,31 @@ const GlassCard = ({ children, className, delay = 0, hover = true }: GlassCardPr
             ref={ref}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay }}
+            transition={{ duration: 0.4, delay }}
             style={{
                 rotateX: hover ? rotateX : 0,
                 rotateY: hover ? rotateY : 0,
                 transformStyle: "preserve-3d",
             }}
             whileHover={hover ? {
-                zIndex: 10,
-                transition: { duration: 0.3 }
+                y: -4,
+                scale: 1.01,
+                transition: { duration: 0.2 }
             } : {}}
             className={cn(
-                "glass-panel p-6 transition-colors duration-300 relative group",
+                "surface-panel p-6 relative group bg-zinc-900 border-zinc-800",
                 className
             )}
         >
             <div
-                style={{ transform: "translateZ(50px)" }}
+                style={{ transform: "translateZ(20px)" }}
                 className="relative z-10"
             >
                 {children}
             </div>
-
-            {/* Subtle Inner Glow on Hover */}
-            {hover && (
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-[inherit]">
-                    <div className="absolute inset-[1px] rounded-[inherit] bg-gradient-to-br from-white/10 to-transparent" />
-                </div>
-            )}
         </motion.div>
     );
 };

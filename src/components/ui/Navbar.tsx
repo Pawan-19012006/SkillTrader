@@ -25,37 +25,36 @@ const Navbar = () => {
     return (
         <nav className={cn(
             "fixed top-0 w-full z-50 transition-all duration-500 px-6 py-4",
-            scrolled ? "bg-background/80 backdrop-blur-md py-3 border-b border-white/10" : "bg-transparent"
+            scrolled ? "bg-zinc-950/80 backdrop-blur-md py-3 border-b border-zinc-800" : "bg-transparent"
         )}>
             <div className="max-w-7xl mx-auto flex items-center justify-between">
-                <Link to="/" className="flex items-center gap-2 group">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-purple to-primary-blue rounded-xl flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
-                        <Rocket className="text-[#0a0a0c]" />
+                <Link to="/" className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center p-2 group-hover:bg-indigo-500 transition-colors">
+                        <Rocket className="text-white" size={20} />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                        <span className="text-2xl font-display font-bold text-white tracking-tighter">
                             ConceptSwap
                         </span>
-                        <span className="text-[8px] uppercase tracking-[0.3em] text-primary-teal font-black -mt-1 opacity-60">Clarity over complexity</span>
+                        <span className="text-[8px] uppercase tracking-[0.4em] text-zinc-500 font-bold -mt-0.5">Clarity over complexity</span>
                     </div>
                 </Link>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden md:flex items-center gap-6">
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
                             to={link.path}
                             className={cn(
-                                "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary-blue",
-                                location.pathname === link.path ? "text-primary-blue" : "text-white/70"
+                                "flex items-center gap-2 text-sm font-semibold transition-colors nav-link",
+                                location.pathname === link.path ? "text-white bg-zinc-800" : "text-zinc-400"
                             )}
                         >
-                            {link.icon}
                             {link.name}
                         </Link>
                     ))}
-                    <div className="h-6 w-[1px] bg-white/10 mx-2" />
+                    <div className="h-6 w-[1px] bg-zinc-800 mx-2" />
                     <Link to="/auth">
                         <GlowButton variant="glass" size="sm">Log In</GlowButton>
                     </Link>

@@ -5,7 +5,7 @@ import {
     User,
     Wallet,
     CheckCircle2,
-    Download,
+    Shield,
     Video,
     X,
     Sparkles
@@ -29,21 +29,49 @@ interface BookingConfirmModalProps {
 const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirmModalProps) => {
     const [step, setStep] = useState<'confirm' | 'deducting' | 'success'>('confirm');
     const [currentBalance, setCurrentBalance] = useState(1250);
+    const [meetLink, setMeetLink] = useState<string | null>(null);
     const animatedBalance = useAnimateCounter(currentBalance);
-
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
+        if (!bookingDetails) return;
+        
         setStep('deducting');
 
-        // Simulate deduction animation
-        setTimeout(() => {
-            setCurrentBalance(prev => prev - (bookingDetails?.cost || 0));
-            setTimeout(() => {
-                setStep('success');
-                fireConfetti();
-            }, 1000);
-        }, 500);
+        try {
+            const response = await fetch('http://localhost:5001/book-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: 'user_123', // Hardcoded for demo
+                    conceptId: 'session_1', // In a real app, this would come from props
+                    conceptName: 'Recursion Explained Simply',
+                    guideName: bookingDetails.guide,
+                    selectedTime: bookingDetails.date.toISOString()
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setMeetLink(data.meetLink);
+                // Simulate deduction animation duration
+                setTimeout(() => {
+                    setCurrentBalance(prev => prev - (bookingDetails.cost || 0));
+                    setTimeout(() => {
+                        setStep('success');
+                        fireConfetti();
+                    }, 1000);
+                }, 500);
+            } else {
+                alert('Booking failed: ' + data.message);
+                setStep('confirm');
+            }
+        } catch (error) {
+            console.error('Booking error:', error);
+            alert('Booking service unreachable.');
+            setStep('confirm');
+        }
     };
 
     if (!bookingDetails) return null;
@@ -69,65 +97,65 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     >
                         <button
                             onClick={onClose}
-                            className="absolute top-8 right-8 p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors"
+                            className="absolute top-8 right-8 p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-white transition-all shadow-sm"
                         >
-                            <X size={20} />
+                            <X size={18} />
                         </button>
 
                         {step === 'confirm' && (
                             <motion.div
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="space-y-12"
                             >
                                 <div>
-                                    <h2 className="text-3xl font-display font-bold mb-2">Confirm Concept Sync</h2>
-                                    <p className="text-white/40">Please review your concept details before initializing.</p>
+                                    <h2 className="text-3xl font-display font-bold mb-2 text-white">Initialize Sync</h2>
+                                    <p className="text-zinc-500 font-medium tracking-tight">Verify protocol parameters before execution.</p>
                                 </div>
 
                                 <div className="space-y-6">
-                                    <GlassCard className="p-6 bg-white/[0.02]" hover={false}>
+                                    <GlassCard className="p-6 bg-zinc-900 border-zinc-800" hover={false}>
                                         <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex flex-col items-center justify-center border border-white/10">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-white/30">{months[bookingDetails.date.getMonth()]}</span>
-                                                <span className="text-2xl font-display font-bold">{bookingDetails.date.getDate()}</span>
+                                            <div className="w-16 h-16 bg-zinc-950 rounded-xl flex flex-col items-center justify-center border border-zinc-800">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{months[bookingDetails.date.getMonth()]}</span>
+                                                <span className="text-2xl font-display font-bold text-white">{bookingDetails.date.getDate()}</span>
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-lg">Recursion Explained Simply</h4>
-                                                <div className="flex items-center gap-2 text-white/40 text-sm mt-1">
-                                                    <User size={14} /> {bookingDetails.guide}
+                                                <h4 className="font-bold text-lg text-white uppercase tracking-tight">Recursion Explained</h4>
+                                                <div className="flex items-center gap-2 text-zinc-500 text-xs mt-1 font-bold uppercase tracking-widest">
+                                                    <User size={12} className="text-indigo-500" /> {bookingDetails.guide}
                                                 </div>
                                             </div>
                                         </div>
                                     </GlassCard>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                                            <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-1 flex items-center gap-2">
-                                                <Clock size={12} /> Sync Slot
+                                        <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                                            <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                                                <Clock size={12} className="text-indigo-500" /> Time Slot
                                             </div>
-                                            <div className="font-bold">{bookingDetails.slot}</div>
+                                            <div className="font-bold text-white text-sm">{bookingDetails.slot}</div>
                                         </div>
-                                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                                            <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mb-1 flex items-center gap-2">
-                                                <Wallet size={12} /> Cost
+                                        <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                                            <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                                                <Wallet size={12} className="text-zinc-400" /> Protocol Cost
                                             </div>
-                                            <div className="font-bold text-primary-blue">{bookingDetails.cost} Credits</div>
+                                            <div className="font-bold text-indigo-500 text-sm">{bookingDetails.cost} CR</div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-6 pt-12 border-t border-white/5">
+                                <div className="space-y-6 pt-12 border-t border-zinc-800">
                                     <div className="flex justify-between items-center px-2">
-                                        <span className="text-sm font-medium text-white/40">Current Balance</span>
-                                        <span className="font-display font-bold">{currentBalance}</span>
+                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Current Balance</span>
+                                        <span className="font-bold text-white">1,250 CR</span>
                                     </div>
                                     <div className="flex justify-between items-center px-2">
-                                        <span className="text-sm font-medium text-white/40">After Booking</span>
-                                        <span className="font-display font-bold text-primary-teal">{currentBalance - bookingDetails.cost}</span>
+                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Execution Result</span>
+                                        <span className="font-bold text-indigo-500">{1250 - bookingDetails.cost} CR</span>
                                     </div>
-                                    <GlowButton onClick={handleConfirm} variant="purple" fullWidth size="lg" className="py-5 shadow-glow-purple group">
-                                        Initialze Sync <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
+                                    <GlowButton onClick={handleConfirm} variant="purple" fullWidth size="lg" className="py-5 group">
+                                        Execute Sync <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
                                     </GlowButton>
                                 </div>
                             </motion.div>
@@ -136,7 +164,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                         {(step === 'deducting' || step === 'success') && (
                             <div className="h-full flex flex-col items-center justify-center text-center space-y-12">
                                 <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    initial={{ scale: 0.9, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     className="relative"
                                 >
@@ -146,7 +174,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                                 key="loading"
                                                 animate={{ rotate: 360 }}
                                                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                                className="w-32 h-32 rounded-full border-2 border-dashed border-primary-purple/40"
+                                                className="w-32 h-32 rounded-full border-2 border-dashed border-indigo-500/20"
                                             />
                                         ) : (
                                             <motion.div
@@ -154,7 +182,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                                 initial={{ scale: 0, rotate: -45 }}
                                                 animate={{ scale: 1, rotate: 0 }}
                                                 transition={{ type: "spring", bounce: 0.5 }}
-                                                className="w-32 h-32 rounded-full bg-primary-teal flex items-center justify-center text-background shadow-glow-blue"
+                                                className="w-32 h-32 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-[0_0_40px_rgba(79,70,229,0.3)]"
                                             >
                                                 <CheckCircle2 size={64} />
                                             </motion.div>
@@ -162,7 +190,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                     </AnimatePresence>
 
                                     {step === 'deducting' && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                                             <motion.span className="text-2xl font-display font-bold">
                                                 {animatedBalance}
                                             </motion.span>
@@ -171,13 +199,13 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                 </motion.div>
 
                                 <div className="space-y-4 max-w-sm">
-                                    <h2 className="text-4xl font-display font-bold">
-                                        {step === 'deducting' ? 'Processing...' : 'Concept Sync Initialized'}
+                                    <h2 className="text-4xl font-display font-bold text-white">
+                                        {step === 'deducting' ? 'Synchronizing...' : 'Protocol Active'}
                                     </h2>
-                                    <p className="text-white/40 leading-relaxed">
+                                    <p className="text-zinc-500 font-medium leading-relaxed px-4">
                                         {step === 'deducting'
-                                            ? 'Authenticating transaction and generating sync protocols. Please stand by.'
-                                            : 'Your concept session has been securely booked. The sync link is now active in your dashboard.'}
+                                            ? 'Initializing secure peer-to-peer data channels. Please maintain connection.'
+                                            : 'Your concept sync has been established. Secure access protocols are now active.'}
                                     </p>
                                 </div>
 
@@ -186,23 +214,26 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.5 }}
-                                        className="w-full space-y-4 pt-12"
+                                        className="w-full space-y-6 pt-12"
                                     >
-                                        <GlassCard className="p-6 text-left border-primary-teal/20" hover={false}>
-                                            <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-primary-teal mb-4">
-                                                <Video size={14} /> Secret Sync Link
+                                        <div className="p-6 text-left bg-zinc-900 border border-indigo-500/20 rounded-xl relative overflow-hidden">
+                                            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400 mb-4">
+                                                <Video size={14} /> Encrypted Meeting Link
                                             </div>
-                                            <code className="block bg-black/40 p-3 rounded-xl text-primary-blue text-sm font-mono break-all">
-                                                https://meet.conceptswap.io/arc-742-nmx
-                                            </code>
-                                        </GlassCard>
+                                            <div className="bg-zinc-950 p-4 rounded-lg text-indigo-300 text-sm font-mono break-all border border-zinc-800 select-all">
+                                                {meetLink || 'Processing...'}
+                                            </div>
+                                            <div className="mt-4 text-[9px] text-zinc-600 uppercase tracking-widest font-bold flex items-center gap-2">
+                                                <Shield size={10} /> Secure end-to-end channel
+                                            </div>
+                                        </div>
 
                                         <div className="flex gap-4">
-                                            <GlowButton variant="glass" fullWidth className="gap-2">
-                                                <Download size={18} /> Add to Calendar
+                                            <GlowButton variant="glass" fullWidth size="lg">
+                                                Sync Details
                                             </GlowButton>
-                                            <GlowButton onClick={onClose} variant="purple" fullWidth>
-                                                Go to Dashboard
+                                            <GlowButton onClick={onClose} variant="purple" fullWidth size="lg">
+                                                Dashboard
                                             </GlowButton>
                                         </div>
                                     </motion.div>

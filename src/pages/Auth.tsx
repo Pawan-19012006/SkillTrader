@@ -15,23 +15,20 @@ const Auth = () => {
             <Navbar />
 
             <div className="w-full max-w-md mt-20">
-                <GlassCard className="p-8 md:p-12 relative overflow-hidden" hover={false}>
-                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary-purple/20 blur-[80px]" />
-                    <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary-blue/20 blur-[80px]" />
-
+                <GlassCard className="p-8 md:p-12 bg-zinc-900 border-zinc-800" hover={false}>
                     <div className="text-center mb-10">
                         <motion.div
-                            initial={{ scale: 0.5, opacity: 0 }}
+                            initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="inline-flex p-3 rounded-2xl bg-white/5 border border-white/10 mb-4"
+                            className="inline-flex p-3 rounded-xl bg-zinc-950 border border-zinc-800 mb-6 shadow-inner"
                         >
-                            <Sparkles className="text-primary-teal" size={32} />
+                            <Sparkles className="text-indigo-500" size={28} />
                         </motion.div>
-                        <h2 className="text-3xl font-display font-bold mb-2">
-                            {isLogin ? 'Welcome Back' : 'Join the Protocol'}
+                        <h2 className="text-3xl font-display font-bold mb-3 text-white tracking-tight uppercase">
+                            {isLogin ? 'Initialize Session' : 'Create Identity'}
                         </h2>
-                        <p className="text-white/40 text-sm">
-                            {isLogin ? 'Enter your credentials to access your terminal.' : 'Create an account to start swapping skills today.'}
+                        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+                            {isLogin ? 'Authorization required for secure terminal access.' : 'Register new credentials for the synchronization protocol.'}
                         </p>
                     </div>
 
@@ -39,18 +36,18 @@ const Auth = () => {
                         <AnimatePresence mode="wait">
                             {!isLogin && (
                                 <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
                                     className="space-y-2"
                                 >
-                                    <label className="text-xs font-bold uppercase tracking-widest text-white/30 ml-1">Full Name</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Identity Label</label>
                                     <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
                                         <input
                                             type="text"
-                                            placeholder="Alex Rivera"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder:text-white/10 focus:outline-none focus:border-primary-purple focus:bg-white/[0.08] transition-all"
+                                            placeholder="Sarah Chen"
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 focus:bg-zinc-950/80 transition-all text-sm font-medium"
                                         />
                                     </div>
                                 </motion.div>
@@ -58,60 +55,62 @@ const Auth = () => {
                         </AnimatePresence>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-white/30 ml-1">Email Address</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Communication Channel</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
                                 <input
                                     type="email"
                                     placeholder="name@protocol.io"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder:text-white/10 focus:outline-none focus:border-primary-purple focus:bg-white/[0.08] transition-all"
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 focus:bg-zinc-950/80 transition-all text-sm font-medium"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <div className="flex justify-between items-center px-1">
-                                <label className="text-xs font-bold uppercase tracking-widest text-white/30">Password</label>
-                                {isLogin && <button className="text-[10px] text-primary-blue hover:underline uppercase font-bold tracking-wider">Forgot?</button>}
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Access Cipher</label>
+                                {isLogin && <button className="text-[9px] text-indigo-500 hover:text-indigo-400 uppercase font-bold tracking-widest transition-colors">Recover</button>}
                             </div>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
                                 <input
                                     type="password"
                                     placeholder="••••••••"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder:text-white/10 focus:outline-none focus:border-primary-purple focus:bg-white/[0.08] transition-all"
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 focus:bg-zinc-950/80 transition-all text-sm font-medium"
                                 />
                             </div>
                         </div>
 
-                        <GlowButton variant="purple" fullWidth className="py-4 shadow-glow-purple group">
-                            {isLogin ? 'Initialize Session' : 'Create Protocol ID'} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                        <GlowButton variant="purple" fullWidth className="py-4 group text-[10px] font-bold uppercase tracking-widest overflow-hidden relative">
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                {isLogin ? 'Initialize Session' : 'Enact Identity'} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </span>
                         </GlowButton>
                     </form>
 
                     <div className="mt-10">
                         <div className="relative mb-8 text-center">
-                            <hr className="border-white/5" />
-                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4 text-[10px] uppercase tracking-widest text-white/20 font-bold">Or continue with</span>
+                            <hr className="border-zinc-800" />
+                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-900 px-4 text-[9px] uppercase tracking-widest text-zinc-600 font-bold">External Verification</span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <GlowButton variant="glass" size="sm">
-                                <Github size={18} /> GitHub
+                        <div className="grid grid-cols-2 gap-3">
+                            <GlowButton variant="glass" size="sm" className="font-bold text-[9px] uppercase tracking-widest border-zinc-800 bg-zinc-950">
+                                <Github size={16} /> GitHub
                             </GlowButton>
-                            <GlowButton variant="glass" size="sm">
-                                <Chrome size={18} /> Google
+                            <GlowButton variant="glass" size="sm" className="font-bold text-[9px] uppercase tracking-widest border-zinc-800 bg-zinc-950">
+                                <Chrome size={16} /> Google
                             </GlowButton>
                         </div>
                     </div>
 
-                    <div className="mt-10 text-center text-sm text-white/40">
-                        {isLogin ? "Don't have an account?" : "Already have an account?"} {' '}
+                    <div className="mt-10 text-center text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+                        {isLogin ? "Neural link missing?" : "Access already granted?"} {' '}
                         <button
                             onClick={() => setIsLogin(!isLogin)}
-                            className="text-primary-teal font-bold hover:underline"
+                            className="text-indigo-500 hover:text-indigo-400 transition-colors ml-1"
                         >
-                            {isLogin ? 'Sign up' : 'Log in'}
+                            {isLogin ? 'Register' : 'Activate'}
                         </button>
                     </div>
                 </GlassCard>

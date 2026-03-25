@@ -35,49 +35,49 @@ const Explore = () => {
             <main className="pt-28 px-6 max-w-7xl mx-auto">
                 <header className="mb-12">
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-primary-purple/20 flex items-center justify-center text-primary-purple border border-primary-purple/30">
-                            <Zap size={24} />
+                        <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20 shadow-sm">
+                            <Zap size={20} />
                         </div>
                         <motion.h1
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="text-4xl md:text-5xl font-display font-bold"
+                            className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight"
                         >
-                            Concept Marketplace
+                            Sync Marketplace
                         </motion.h1>
                     </div>
-                    <p className="text-white/40 mb-10 max-w-2xl text-lg">
-                        Synchronize with Concept Guides worldwide. Get instant clarity on complex topics in short, focused sessions.
+                    <p className="text-zinc-500 mb-10 max-w-2xl text-lg font-medium">
+                        Secure end-to-end concept synchronization. Connect with authorized guides for deep technical mastery.
                     </p>
 
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-grow">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20" size={20} />
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                             <input
                                 type="text"
-                                placeholder="Search the protocol (e.g. 'Framer Motion', 'Solidity')..."
+                                placeholder="Search sync protocols (e.g. 'Recursion', 'Solidity')..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-5 pl-14 pr-4 text-white placeholder:text-white/10 focus:outline-none focus:border-primary-purple/50 focus:bg-white/[0.05] transition-all text-lg font-light"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-14 pr-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-indigo-500/50 focus:bg-zinc-800/50 transition-all text-base font-bold shadow-sm"
                             />
                         </div>
-                        <GlowButton variant="glass" className="md:w-40 py-5">
-                            <Filter size={18} /> Filters
+                        <GlowButton variant="glass" className="md:w-32">
+                            <Filter size={16} /> Filters
                         </GlowButton>
                     </div>
                 </header>
 
                 {/* Categories Scroller */}
-                <div className="flex gap-4 mb-12 overflow-x-auto pb-6 scrollbar-hide">
+                <div className="flex gap-3 mb-12 overflow-x-auto pb-6 scrollbar-hide">
                     {categories.map((cat) => (
                         <button
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
                             className={cn(
-                                "px-8 py-3 rounded-2xl border transition-all whitespace-nowrap font-bold text-sm tracking-tight",
+                                "px-6 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
                                 selectedCategory === cat
-                                    ? "bg-primary-purple/20 border-primary-purple/40 text-white shadow-[0_0_20px_rgba(157,0,255,0.2)]"
-                                    : "bg-white/[0.02] border-white/5 text-white/40 hover:border-white/20 hover:text-white"
+                                    ? "bg-indigo-600 border-indigo-500 text-white shadow-sm"
+                                    : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-white"
                             )}
                         >
                             {cat}
@@ -86,77 +86,76 @@ const Explore = () => {
                 </div>
 
                 {/* Skills Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence mode="popLayout">
                         {filteredConcepts.map((concept, idx) => (
                             <motion.div
                                 key={concept.id}
                                 layout
-                                initial={{ opacity: 0, y: 30 }}
+                                initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.3, delay: idx * 0.05 }}
                             >
                                 <Link to={`/session/${concept.id}`}>
-                                    <GlassCard className="h-full flex flex-col p-0 overflow-hidden group border-white/5 hover:border-primary-blue/30" hover={true}>
-                                        <div className={cn("h-56 bg-gradient-to-br flex items-center justify-center text-7xl relative overflow-hidden", concept.gradient)}>
-                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500" />
+                                    <GlassCard className="h-full flex flex-col p-0 overflow-hidden group bg-zinc-900 border-zinc-800 hover:border-indigo-500/50 shadow-sm" hover={true}>
+                                        <div className="h-48 bg-zinc-950 flex items-center justify-center text-6xl relative overflow-hidden border-b border-zinc-800">
+                                            <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                             {/* Tag */}
                                             <div className="absolute top-4 left-4 z-20">
-                                                <div className="bg-primary-purple/20 backdrop-blur-md px-3 py-1 rounded-full border border-primary-purple/30 text-[10px] font-black text-primary-purple uppercase tracking-widest">
+                                                <div className="bg-zinc-900/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-zinc-800 text-[9px] font-bold text-indigo-400 uppercase tracking-widest">
                                                     {concept.tag}
                                                 </div>
                                             </div>
 
                                             <motion.span
-                                                whileHover={{ scale: 1.2, rotate: 5 }}
-                                                transition={{ type: "spring", stiffness: 300 }}
-                                                className="z-10 relative drop-shadow-2xl"
+                                                whileHover={{ y: -5 }}
+                                                className="z-10 relative"
                                             >
                                                 {concept.image}
                                             </motion.span>
 
                                             <div className="absolute top-4 right-4 z-20">
-                                                <div className="bg-background/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-xl">
-                                                    <Star size={12} className="text-primary-teal" fill="currentColor" />
-                                                    <span className="text-xs font-bold text-white">{concept.rating}</span>
+                                                <div className="bg-zinc-900/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-zinc-800 flex items-center gap-1.5">
+                                                    <Star size={10} className="text-indigo-500" fill="currentColor" />
+                                                    <span className="text-[10px] font-bold text-zinc-300">{concept.rating}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="p-8 flex flex-col flex-grow relative bg-white/[0.01]">
-                                            <div className="flex justify-between items-center mb-5">
+                                        <div className="p-6 flex flex-col flex-grow relative">
+                                            <div className="flex justify-between items-center mb-4">
                                                 <div className="flex gap-2">
-                                                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] uppercase font-black text-primary-blue border border-white/5">
+                                                    <span className="px-1.5 py-0.5 rounded-sm bg-indigo-500/10 text-[9px] uppercase font-bold text-indigo-400 border border-indigo-500/20 tracking-widest">
                                                         {concept.category}
                                                     </span>
-                                                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] uppercase font-black text-white/40 border border-white/5">
+                                                    <span className="px-1.5 py-0.5 rounded-sm bg-zinc-800 text-[9px] uppercase font-bold text-zinc-500 border border-zinc-700 tracking-widest">
                                                         {concept.level}
                                                     </span>
                                                 </div>
-                                                <div className="text-[10px] text-white/20 font-bold uppercase tracking-widest">{concept.duration}</div>
+                                                <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{concept.duration}</div>
                                             </div>
 
-                                            <h3 className="text-2xl font-display font-bold mb-3 group-hover:text-primary-blue transition-colors leading-snug">
+                                            <h3 className="text-lg font-display font-bold mb-3 text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">
                                                 {concept.title}
                                             </h3>
 
-                                            <div className="flex items-center gap-3 text-white/40 text-sm mb-8 font-medium">
-                                                <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 overflow-hidden">
+                                            <div className="flex items-center gap-2.5 text-zinc-500 text-xs mb-6 font-bold uppercase tracking-widest">
+                                                <div className="w-5 h-5 rounded-md bg-zinc-800 border border-zinc-700 overflow-hidden shadow-inner">
                                                     <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${concept.teacher}`} alt={concept.teacher} />
                                                 </div>
-                                                Guide: {concept.teacher}
+                                                Guide: <span className="text-zinc-400">{concept.teacher}</span>
                                             </div>
 
-                                            <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
+                                            <div className="mt-auto pt-6 border-t border-zinc-800 flex items-center justify-between">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] uppercase text-white/20 font-black tracking-[0.15em] mb-1">Knowledge Exchange</span>
-                                                    <div className="flex items-center gap-2 text-2xl font-bold font-display text-white">
-                                                        {concept.cost} <span className="text-xs text-primary-blue uppercase tracking-widest font-black">Credits</span>
+                                                    <span className="text-[9px] uppercase text-zinc-600 font-bold tracking-widest mb-1">Exchange Value</span>
+                                                    <div className="flex items-center gap-1.5 text-xl font-bold font-display text-white">
+                                                        {concept.cost} <span className="text-[10px] text-indigo-500 uppercase tracking-widest font-bold">CR</span>
                                                     </div>
                                                 </div>
-                                                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/20 group-hover:bg-primary-purple group-hover:text-white group-hover:shadow-glow-purple transition-all transform group-hover:rotate-12">
-                                                    <ArrowUpRight size={20} />
+                                                <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-500 transition-all">
+                                                    <ArrowUpRight size={16} />
                                                 </div>
                                             </div>
                                         </div>
@@ -171,15 +170,15 @@ const Explore = () => {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="text-center py-32 border border-dashed border-white/10 rounded-[3rem] mt-12 bg-white/[0.01]"
+                        className="text-center py-24 border border-zinc-800 rounded-3xl mt-12 bg-zinc-900/50"
                     >
-                        <div className="text-7xl mb-6 opacity-20">📡</div>
-                        <h3 className="text-3xl font-display font-bold mb-3">No Signal Detected</h3>
-                        <p className="text-white/30 max-w-sm mx-auto leading-relaxed">
-                            We couldn't synchronize with any concepts matching your current search parameters.
+                        <div className="text-5xl mb-6 opacity-20">📡</div>
+                        <h3 className="text-2xl font-display font-bold mb-2 text-white">No Protocol Detected</h3>
+                        <p className="text-zinc-500 max-w-sm mx-auto leading-relaxed font-medium">
+                            We couldn't synchronize with any concepts matching your current filter set.
                         </p>
                         <GlowButton onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }} variant="glass" className="mt-10" size="sm">
-                            Reset All Protocols
+                            Reset Filters
                         </GlowButton>
                     </motion.div>
                 )}
