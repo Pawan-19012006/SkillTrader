@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, DollarSign, Link as LinkIcon, Check, AlertCircle, Shield } from 'lucide-react';
+import { Clock, DollarSign, Check, AlertCircle, Plus, Trash2, Calendar } from 'lucide-react';
 import Navbar from '../components/ui/Navbar';
 import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
@@ -20,8 +20,48 @@ const Teach = () => {
         duration: '30',
         price: '50',
         meetLink: '',
-        tags: ''
+        tags: '',
+        availability: [
+            { date: '', slots: [''] }
+        ]
     });
+
+    const addDate = () => {
+        setFormData({
+            ...formData,
+            availability: [...formData.availability, { date: '', slots: [''] }]
+        });
+    };
+
+    const removeDate = (index: number) => {
+        const newAvailability = [...formData.availability];
+        newAvailability.splice(index, 1);
+        setFormData({ ...formData, availability: newAvailability });
+    };
+
+    const addSlot = (dateIndex: number) => {
+        const newAvailability = [...formData.availability];
+        newAvailability[dateIndex].slots.push('');
+        setFormData({ ...formData, availability: newAvailability });
+    };
+
+    const removeSlot = (dateIndex: number, slotIndex: number) => {
+        const newAvailability = [...formData.availability];
+        newAvailability[dateIndex].slots.splice(slotIndex, 1);
+        setFormData({ ...formData, availability: newAvailability });
+    };
+
+    const updateDate = (index: number, value: string) => {
+        const newAvailability = [...formData.availability];
+        newAvailability[index].date = value;
+        setFormData({ ...formData, availability: newAvailability });
+    };
+
+    const updateSlot = (dateIndex: number, slotIndex: number, value: string) => {
+        const newAvailability = [...formData.availability];
+        newAvailability[dateIndex].slots[slotIndex] = value;
+        setFormData({ ...formData, availability: newAvailability });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,12 +91,13 @@ const Teach = () => {
                 isActive: true,
                 createdAt: serverTimestamp(),
                 objectives: formData.objectives.split(';').map(o => o.trim()).filter(o => o !== ''),
-                tags: formData.tags.split(',').map(t => t.trim()).filter(t => t !== '')
+                tags: formData.tags.split(',').map(t => t.trim()).filter(t => t !== ''),
+                availability: formData.availability.filter(a => a.date !== '' && a.slots.some(s => s !== ''))
             });
 
             setSuccess(true);
             setTimeout(() => {
-                window.location.href = '/dashboard';
+                window.location.href = '/profile';
             }, 2000);
         } catch (error) {
             console.error('Error creating session:', error);
@@ -146,24 +187,6 @@ const Teach = () => {
                         <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none" hover={false}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Secure Meeting Link</label>
-                                    <div className="relative">
-                                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" size={16} />
-                                        <input
-                                            required
-                                            type="url"
-                                            placeholder="https://meet.google.com/..."
-                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 pl-12 pr-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium text-sm"
-                                            value={formData.meetLink}
-                                            onChange={(e) => setFormData({...formData, meetLink: e.target.value})}
-                                        />
-                                    </div>
-                                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                                        <Shield size={10} /> Link remains encrypted until booking verification
-                                    </p>
-                                </div>
-
-                                <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Categorization Tags</label>
                                     <input
                                         type="text"
@@ -173,6 +196,100 @@ const Teach = () => {
                                         onChange={(e) => setFormData({...formData, tags: e.target.value})}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Secure Meeting Link</label>
+                                    <input
+                                        required
+                                        type="url"
+                                        placeholder="e.g., https://meet.google.com/abc-defg-hij"
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium uppercase tracking-tight text-sm"
+                                        value={formData.meetLink}
+                                        onChange={(e) => setFormData({...formData, meetLink: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        </GlassCard>
+
+                        {/* Availability Manager */}
+                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none relative overflow-hidden" hover={false}>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16" />
+                            
+                            <div className="flex items-center justify-between mb-8 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-600/10 border border-indigo-500/20 rounded-none flex items-center justify-center text-indigo-500">
+                                        <Calendar size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-display font-bold text-white uppercase italic tracking-tighter">Availability Manager</h3>
+                                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Define Sync Windows</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={addDate}
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-indigo-500 transition-colors"
+                                >
+                                    <Plus size={14} /> Add Date
+                                </button>
+                            </div>
+
+                            <div className="space-y-8 relative z-10">
+                                {formData.availability.map((avail, dateIdx) => (
+                                    <div key={dateIdx} className="p-6 bg-zinc-950 border border-zinc-800 space-y-6">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex-grow">
+                                                <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1 block">Protocol Date</label>
+                                                <input 
+                                                    type="date"
+                                                    required
+                                                    value={avail.date}
+                                                    onChange={(e) => updateDate(dateIdx, e.target.value)}
+                                                    className="w-full bg-zinc-900 border border-zinc-800 py-2 px-3 text-white text-xs font-bold focus:outline-none focus:border-indigo-500/50"
+                                                />
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                onClick={() => removeDate(dateIdx)}
+                                                className="mt-5 p-2 text-zinc-700 hover:text-red-500 transition-colors"
+                                                disabled={formData.availability.length === 1}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest block">Synchronization Slots</label>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                {avail.slots.map((slot, slotIdx) => (
+                                                    <div key={slotIdx} className="flex items-center gap-2">
+                                                        <input 
+                                                            type="time"
+                                                            required
+                                                            value={slot}
+                                                            onChange={(e) => updateSlot(dateIdx, slotIdx, e.target.value)}
+                                                            className="flex-grow bg-zinc-900 border border-zinc-800 py-2 px-3 text-white text-xs font-bold focus:outline-none focus:border-indigo-500/50"
+                                                        />
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => removeSlot(dateIdx, slotIdx)}
+                                                            className="p-1.5 text-zinc-800 hover:text-red-500 transition-colors"
+                                                            disabled={avail.slots.length === 1}
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => addSlot(dateIdx)}
+                                                    className="flex items-center justify-center gap-2 py-2 border border-dashed border-zinc-800 text-zinc-600 hover:border-zinc-600 hover:text-zinc-400 text-[9px] font-bold uppercase tracking-widest transition-all"
+                                                >
+                                                    <Plus size={12} /> Add Slot
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </GlassCard>
                     </div>

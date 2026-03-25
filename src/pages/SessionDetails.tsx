@@ -20,6 +20,7 @@ import BookingConfirmModal from '../components/booking/BookingConfirmModal';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import { cn } from '../utils/cn';
 
 const SessionDetails = () => {
     const { id } = useParams();
@@ -27,6 +28,7 @@ const SessionDetails = () => {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [selectedSlotIdx, setSelectedSlotIdx] = useState<{dateIdx: number, slotIdx: number} | null>(null);
     const [bookingDetails, setBookingDetails] = useState<{
         date: Date;
         slot: string;
@@ -34,6 +36,7 @@ const SessionDetails = () => {
         cost: number;
         title: string;
         sessionId: string;
+        dateString: string;
     } | null>(null);
 
     const isOwner = session?.creatorId === user?.uid;
@@ -45,7 +48,9 @@ const SessionDetails = () => {
                 const docRef = doc(db, 'sessions', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setSession({ id: docSnap.id, ...docSnap.data() });
+                    const data = docSnap.data();
+                    console.log("availability:", data.availability);
+                    setSession({ id: docSnap.id, ...data });
                 }
             } catch (error) {
                 console.error("Error fetching session:", error);
@@ -56,17 +61,23 @@ const SessionDetails = () => {
         fetchSession();
     }, [id]);
 
-    const handleInitializeSync = () => {
-        if (!session) return;
+    const handleConfirmSelection = () => {
+        if (!session || !selectedSlotIdx) return;
+        
+        const dateStr = session.availability[selectedSlotIdx.dateIdx].date;
+        const slot = session.availability[selectedSlotIdx.dateIdx].slots[selectedSlotIdx.slotIdx];
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const bookingDate = new Date(year, month - 1, day);
+
         setBookingDetails({
-            date: new Date(),
-            slot: "Instant Sync Protocol",
+            date: bookingDate,
+            dateString: dateStr,
+            slot: slot,
             guide: session.creatorName,
             cost: session.price,
             title: session.title,
             sessionId: session.id
         });
-        setIsBookingOpen(true);
     };
 
     return (
@@ -166,13 +177,13 @@ const SessionDetails = () => {
                                     )}
                                     <div className="flex gap-4 pt-4">
                                         <GlowButton 
-                                            onClick={handleInitializeSync} 
+                                            onClick={() => setIsBookingOpen(true)} 
                                             variant="purple" 
                                             size="lg" 
                                             className="px-10 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]"
                                             disabled={isOwner}
                                         >
-                                            {isOwner ? 'Locked: Your Session' : 'Initialize Sync'}
+                                            {isOwner ? 'Locked: Your Session' : 'Access Sync Ledger'}
                                         </GlowButton>
                                         <GlowButton variant="glass" size="lg" className="px-8 flex items-center gap-2 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]">
                                             <MessageSquare size={18} /> Contact Guide
@@ -271,49 +282,130 @@ const SessionDetails = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setIsBookingOpen(false)}
+                            onClick={() => {
+                                setIsBookingOpen(false);
+                                setBookingDetails(null);
+                                setSelectedSlotIdx(null);
+                            }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         />
-                        <motion.div
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: "spring", damping: 30, stiffness: 200 }}
-                            className="relative w-full max-w-2xl h-full bg-zinc-950 border-l border-zinc-800 p-8 md:p-12 overflow-y-auto"
-                        >
-                            <div className="mb-12">
-                                <h2 className="text-4xl font-display font-bold mb-2 uppercase italic tracking-tighter text-white">Initialize Sync</h2>
-                                <p className="text-zinc-500 font-medium uppercase tracking-tight text-sm">Reviewing protocol parameters for {session?.creatorName}'s clarity session.</p>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-none border-l-4 border-l-indigo-500">
-                                    <h4 className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-2">Selected Mode</h4>
-                                    <p className="text-lg text-white font-bold uppercase italic tracking-tighter">High-Frequency Instant Sync</p>
-                                </div>
-                                <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-none border-l-4 border-l-indigo-500">
-                                    <h4 className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-2">Temporal Marker</h4>
-                                    <p className="text-lg text-white font-bold uppercase italic tracking-tighter">Synchronizing @ {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Immediate)</p>
-                                </div>
-                            </div>
-
-                            {/* Confirm Selection Area */}
-                            <AnimatePresence>
-                                {bookingDetails && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 30 }}
+                            <motion.div
+                                initial={{ x: '100%', opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: '100%', opacity: 0 }}
+                                transition={{ type: "spring", damping: 30, stiffness: 200 }}
+                                className="relative w-full max-w-2xl h-full bg-zinc-950 border-l border-zinc-900 p-8 md:p-12 overflow-y-auto"
+                            >
+                                <div className="mb-12">
+                                    <motion.h2 
+                                        initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 30 }}
-                                        className="mt-12 pt-8 border-t border-zinc-800"
+                                        transition={{ delay: 0.2 }}
+                                        className="text-4xl font-display font-bold mb-2 uppercase italic tracking-tighter text-white"
+                                    >
+                                        Initialize Sync
+                                    </motion.h2>
+                                    <motion.p 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.3 }}
+                                        className="text-zinc-500 font-medium uppercase tracking-tight text-sm"
+                                    >
+                                        Reviewing protocol parameters for {session?.creatorName}'s clarity session.
+                                    </motion.p>
+                                </div>
+
+                            <AnimatePresence mode="wait">
+                                {!bookingDetails ? (
+                                    <motion.div 
+                                        key="selection-list"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="space-y-8"
+                                    >
+                                        <div className="space-y-1 mb-8">
+                                            <h4 className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                                                Select Available Time
+                                            </h4>
+                                        </div>
+
+                                        <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-4 scrollbar-none">
+                                            {session?.availability && session.availability.length > 0 ? (
+                                                session.availability.map((dateItem: any, dIdx: number) => (
+                                                    <div key={dIdx} className="space-y-4">
+                                                        <h3 className="text-sm font-bold text-white uppercase tracking-widest border-l-2 border-indigo-500 pl-3 py-1 bg-white/5">
+                                                            {new Date(dateItem.date).toLocaleDateString(undefined, { 
+                                                                weekday: 'long', 
+                                                                month: 'long', 
+                                                                day: 'numeric' 
+                                                            })}
+                                                        </h3>
+                                                        
+                                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                            {dateItem.slots.map((slot: string, sIdx: number) => (
+                                                                <motion.button
+                                                                    key={`${dIdx}-${sIdx}`}
+                                                                    whileHover={{ y: -2 }}
+                                                                    whileTap={{ scale: 0.98 }}
+                                                                    onClick={() => setSelectedSlotIdx({ dateIdx: dIdx, slotIdx: sIdx })}
+                                                                    className={cn(
+                                                                        "p-4 border text-[10px] font-bold uppercase tracking-widest transition-all",
+                                                                        selectedSlotIdx?.dateIdx === dIdx && selectedSlotIdx?.slotIdx === sIdx
+                                                                            ? "bg-white text-black border-white shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+                                                                            : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
+                                                                    )}
+                                                                >
+                                                                    {slot}
+                                                                </motion.button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
+                                                    <div className="text-4xl mb-6 opacity-30">📅</div>
+                                                    <h4 className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em] px-12 leading-loose">
+                                                        No slots available
+                                                    </h4>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-10 mt-auto border-t border-zinc-900">
+                                            <GlowButton 
+                                                onClick={handleConfirmSelection}
+                                                disabled={!selectedSlotIdx}
+                                                variant="purple" 
+                                                fullWidth 
+                                                size="lg" 
+                                                className="py-6 rounded-none font-bold uppercase tracking-[0.25em] text-[10px]"
+                                            >
+                                                Initialize Booking
+                                            </GlowButton>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="confirm-modal"
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.98 }}
+                                        className="h-full"
                                     >
                                         <BookingConfirmModal
                                             isOpen={isBookingOpen}
-                                            onClose={() => setIsBookingOpen(false)}
+                                            onClose={() => {
+                                                setIsBookingOpen(false);
+                                                setBookingDetails(null);
+                                                setSelectedSlotIdx(null);
+                                            }}
                                             bookingDetails={bookingDetails}
                                         />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
                         </motion.div>
                     </div>
                 )}

@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage.tsx';
-import Dashboard from './pages/Dashboard.tsx';
 import Explore from './pages/Explore.tsx';
 import Requests from './pages/Requests.tsx';
 import SessionDetails from './pages/SessionDetails.tsx';
@@ -13,7 +12,6 @@ function App() {
         <div className="min-h-screen">
             <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/explore" element={<Explore />} />
                 <Route path="/requests" element={<Requests />} />
                 <Route path="/session/:id" element={<SessionDetails />} />

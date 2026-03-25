@@ -24,6 +24,7 @@ interface BookingConfirmModalProps {
     onClose: () => void;
     bookingDetails: {
         date: Date;
+        dateString: string;
         slot: string;
         guide: string;
         cost: number;
@@ -59,6 +60,30 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                 const sessionData = sessionSnap.data();
                 const creatorId = sessionData.creatorId;
 
+                // --- Availability Check & Update ---
+                const currentAvailability = sessionData.availability || [];
+                const targetDateStr = bookingDetails.dateString;
+                
+                // Find the date entry
+                const dateEntryIdx = currentAvailability.findIndex((a: any) => a.date === targetDateStr);
+                if (dateEntryIdx === -1) throw new Error("Selected date is no longer available.");
+
+                const slots = currentAvailability[dateEntryIdx].slots || [];
+                const slotIdx = slots.indexOf(bookingDetails.slot);
+                if (slotIdx === -1) throw new Error("Selected time slot has already been synchronized by another peer.");
+
+                // Create new availability array with the slot removed
+                const newAvailability = [...currentAvailability];
+                const newSlots = [...slots];
+                newSlots.splice(slotIdx, 1);
+                
+                if (newSlots.length === 0) {
+                    // Remove the date entry entirely if no slots left
+                    newAvailability.splice(dateEntryIdx, 1);
+                } else {
+                    newAvailability[dateEntryIdx] = { ...newAvailability[dateEntryIdx], slots: newSlots };
+                }
+
                 // 2. Optional Read: Creator balance
                 let creatorRef = null;
                 let creatorSnap = null;
@@ -75,12 +100,15 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     throw new Error("Insufficient credits for protocol synchronization.");
                 }
 
-                // 4. WRITES: Buyer deduction
+                // 4. WRITES: Session availability update
+                transaction.update(sessionRef, { availability: newAvailability });
+
+                // 5. WRITES: Buyer deduction
                 transaction.update(userRef, {
                     credits: userCredits - bookingDetails.cost
                 });
 
-                // 5. WRITES: Creator reward
+                // 6. WRITES: Creator reward
                 if (creatorRef && creatorSnap && creatorSnap.exists()) {
                     const creatorCredits = creatorSnap.data().credits || 0;
                     transaction.update(creatorRef, {
@@ -88,7 +116,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     });
                 }
 
-                // 6. WRITES: Booking Record
+                // 7. WRITES: Booking Record
                 const bookingRef = doc(collection(db, 'bookings'));
                 transaction.set(bookingRef, {
                     sessionId: bookingDetails.sessionId,
@@ -98,7 +126,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     creatorId: creatorId,
                     guideName: bookingDetails.guide,
                     price: bookingDetails.cost,
-                    selectedTime: bookingDetails.date.toISOString(),
+                    selectedDate: targetDateStr,
                     selectedSlot: bookingDetails.slot,
                     meetLink: sessionData.meetLink || null,
                     status: 'booked',

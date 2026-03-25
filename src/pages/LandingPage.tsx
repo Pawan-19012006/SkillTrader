@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Star, Users, Zap, Shield, Sparkles } from 'lucide-react';
 import Navbar from '../components/ui/Navbar';
@@ -54,12 +55,16 @@ const LandingPage = () => {
                             The high-frequency marketplace for <span className="text-white italic">Peer-to-Peer</span> knowledge synchronization. Acquire models, not just data.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <GlowButton size="lg" variant="purple" className="min-w-[220px] rounded-none px-10 text-[10px] font-bold uppercase tracking-widest">
-                                Initialize Sync <ArrowRight size={16} />
-                            </GlowButton>
-                            <GlowButton size="lg" variant="glass" className="min-w-[220px] rounded-none px-10 text-[10px] font-bold uppercase tracking-widest bg-zinc-950 border-zinc-800">
-                                Browse Protocols
-                            </GlowButton>
+                            <Link to="/auth">
+                                <GlowButton size="lg" variant="purple" className="min-w-[220px] rounded-none px-10 text-[10px] font-bold uppercase tracking-widest">
+                                    Initialize Sync <ArrowRight size={16} />
+                                </GlowButton>
+                            </Link>
+                            <Link to="/explore">
+                                <GlowButton size="lg" variant="glass" className="min-w-[220px] rounded-none px-10 text-[10px] font-bold uppercase tracking-widest bg-zinc-950 border-zinc-800">
+                                    Browse Protocols
+                                </GlowButton>
+                            </Link>
                         </div>
                     </motion.div>
 
@@ -108,9 +113,11 @@ const LandingPage = () => {
                                 Thousands of peers are ready to deconstruct complex protocols for you. Join the ledger today.
                             </p>
                         </div>
-                        <GlowButton variant="purple" size="lg" className="whitespace-nowrap px-12 py-6 rounded-none text-[10px] font-bold uppercase tracking-[0.2em]">
-                            Authorize Access
-                        </GlowButton>
+                        <Link to="/auth">
+                            <GlowButton variant="purple" size="lg" className="whitespace-nowrap px-12 py-6 rounded-none text-[10px] font-bold uppercase tracking-[0.2em]">
+                                Authorize Access
+                            </GlowButton>
+                        </Link>
                     </div>
                 </GlassCard>
             </section>

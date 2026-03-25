@@ -18,7 +18,7 @@ const Auth = () => {
         setIsAuthenticating(true);
         try {
             await loginWithGoogle();
-            navigate('/dashboard');
+            navigate('/explore');
         } catch (error) {
             console.error("Login Error:", error);
             alert("Connection to protocol failed. Please re-verify credentials.");
