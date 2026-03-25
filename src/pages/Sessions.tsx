@@ -136,7 +136,7 @@ const Sessions = () => {
                                 size="sm"
                                 className="px-4 rounded-none text-[9px] font-bold uppercase tracking-widest h-10"
                             >
-                                <Video size={14} className="mr-2" /> Join Protocol
+                                <Video size={14} className="mr-2" /> Join Class
                             </GlowButton>
                         )}
                         

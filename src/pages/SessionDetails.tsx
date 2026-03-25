@@ -18,13 +18,15 @@ import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import BookingConfirmModal from '../components/booking/BookingConfirmModal';
 import { db } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../utils/cn';
 
 const SessionDetails = () => {
     const { id } = useParams();
     const { user } = useAuth();
+    const [enrollmentStatus, setEnrollmentStatus] = useState<{[key: string]: boolean}>({});
+    const [attendeeCount, setAttendeeCount] = useState(0);
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -49,7 +51,6 @@ const SessionDetails = () => {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    console.log("availability:", data.availability);
                     setSession({ id: docSnap.id, ...data });
                 }
             } catch (error) {
@@ -58,8 +59,36 @@ const SessionDetails = () => {
                 setLoading(false);
             }
         };
+
+        const fetchBookings = async () => {
+             if (!id) return;
+             // Use onSnapshot for real-time count
+             const q = query(collection(db, 'bookings'), where('sessionId', '==', id));
+             return onSnapshot(q, (snapshot) => {
+                 setAttendeeCount(snapshot.size);
+                 
+                 if (user) {
+                     const status: {[key: string]: boolean} = {};
+                     snapshot.docs.forEach(doc => {
+                         const d = doc.data();
+                         if (d.buyerId === user.uid) {
+                             // Use date+slot as key for granular check
+                             status[`${d.selectedDate}-${d.selectedSlot}`] = true;
+                         }
+                     });
+                     setEnrollmentStatus(status);
+                 }
+             });
+        };
+
         fetchSession();
-    }, [id]);
+        let unsubscribeBookings: any;
+        fetchBookings().then(un => unsubscribeBookings = un);
+
+        return () => {
+            if (unsubscribeBookings) unsubscribeBookings();
+        };
+    }, [id, user]);
 
     const handleConfirmSelection = () => {
         if (!session || !selectedSlotIdx) return;
@@ -136,35 +165,35 @@ const SessionDetails = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex flex-wrap gap-8 py-8 border-y border-zinc-800">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-indigo-500 shadow-sm">
-                                            <Clock size={20} />
+                                    <div className="flex flex-wrap gap-8 py-8 border-y border-zinc-800">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-indigo-500 shadow-sm">
+                                                <Clock size={20} />
+                                            </div>
+                                            <div>
+                                                <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Time Frame</div>
+                                                <div className="font-bold text-white uppercase text-sm">{session.duration} Minutes</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Time Frame</div>
-                                            <div className="font-bold text-white uppercase text-sm">{session.duration} Minutes</div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-white shadow-sm">
+                                                <Zap size={20} />
+                                            </div>
+                                            <div>
+                                                <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Learners Enrolled</div>
+                                                <div className="font-bold text-indigo-500 uppercase text-sm">{attendeeCount} Synthesizing</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-indigo-400 shadow-sm">
+                                                <ShieldCheck size={20} />
+                                            </div>
+                                            <div>
+                                                <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Cost</div>
+                                                <div className="font-bold text-white uppercase text-sm">{session.price} CR</div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-white shadow-sm">
-                                            <Zap size={20} />
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Protocol Cost</div>
-                                            <div className="font-bold text-white uppercase text-sm">{session.price} Credits</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center text-indigo-400 shadow-sm">
-                                            <ShieldCheck size={20} />
-                                        </div>
-                                        <div>
-                                            <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Status</div>
-                                            <div className="font-bold text-indigo-500 uppercase text-sm">Active Sync</div>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <div className="space-y-6">
                                     {isOwner && (
@@ -373,16 +402,28 @@ const SessionDetails = () => {
                                         </div>
 
                                         <div className="pt-10 mt-auto border-t border-zinc-900">
-                                            <GlowButton 
-                                                onClick={handleConfirmSelection}
-                                                disabled={!selectedSlotIdx}
-                                                variant="purple" 
-                                                fullWidth 
-                                                size="lg" 
-                                                className="py-6 rounded-none font-bold uppercase tracking-[0.25em] text-[10px]"
-                                            >
-                                                Initialize Booking
-                                            </GlowButton>
+                                            {selectedSlotIdx && enrollmentStatus[`${session.availability[selectedSlotIdx.dateIdx].date}-${session.availability[selectedSlotIdx.dateIdx].slots[selectedSlotIdx.slotIdx]}`] ? (
+                                                <GlowButton 
+                                                    disabled={true}
+                                                    variant="glass" 
+                                                    fullWidth 
+                                                    size="lg" 
+                                                    className="py-6 rounded-none font-bold uppercase tracking-[0.25em] text-[10px] border-emerald-500/50 text-emerald-500"
+                                                >
+                                                    Already Enrolled
+                                                </GlowButton>
+                                            ) : (
+                                                <GlowButton 
+                                                    onClick={handleConfirmSelection}
+                                                    disabled={!selectedSlotIdx}
+                                                    variant="purple" 
+                                                    fullWidth 
+                                                    size="lg" 
+                                                    className="py-6 rounded-none font-bold uppercase tracking-[0.25em] text-[10px]"
+                                                >
+                                                    Initialize Enrollment
+                                                </GlowButton>
+                                            )}
                                         </div>
                                     </motion.div>
                                 ) : (

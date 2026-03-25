@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import Explore from './pages/Explore';
-import Requests from './pages/Requests';
+import Community from './pages/Community';
 import SessionDetails from './pages/SessionDetails';
 import Sessions from './pages/Sessions';
 import Profile from './pages/Profile';
@@ -14,7 +14,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/explore" element={<Explore />} />
-                <Route path="/requests" element={<Requests />} />
+                <Route path="/community" element={<Community />} />
                 <Route path="/session/:id" element={<SessionDetails />} />
                 <Route path="/sessions" element={<Sessions />} />
                 <Route path="/profile" element={<Profile />} />

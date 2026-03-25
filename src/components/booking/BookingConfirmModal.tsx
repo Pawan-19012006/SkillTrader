@@ -62,29 +62,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                 const sessionData = sessionSnap.data();
                 const creatorId = sessionData.creatorId;
 
-                // --- Availability Check & Update ---
-                const currentAvailability = sessionData.availability || [];
                 const targetDateStr = bookingDetails.dateString;
-                
-                // Find the date entry
-                const dateEntryIdx = currentAvailability.findIndex((a: any) => a.date === targetDateStr);
-                if (dateEntryIdx === -1) throw new Error("Selected date is no longer available.");
-
-                const slots = currentAvailability[dateEntryIdx].slots || [];
-                const slotIdx = slots.indexOf(bookingDetails.slot);
-                if (slotIdx === -1) throw new Error("Selected time slot has already been synchronized by another peer.");
-
-                // Create new availability array with the slot removed
-                const newAvailability = [...currentAvailability];
-                const newSlots = [...slots];
-                newSlots.splice(slotIdx, 1);
-                
-                if (newSlots.length === 0) {
-                    // Remove the date entry entirely if no slots left
-                    newAvailability.splice(dateEntryIdx, 1);
-                } else {
-                    newAvailability[dateEntryIdx] = { ...newAvailability[dateEntryIdx], slots: newSlots };
-                }
 
                 // 2. Optional Read: Creator balance
                 let creatorRef = null;
@@ -102,10 +80,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     throw new Error("Insufficient credits for protocol synchronization.");
                 }
 
-                // 4. WRITES: Session availability update
-                transaction.update(sessionRef, { availability: newAvailability });
-
-                // 5. WRITES: Buyer deduction
+                // 4. WRITES: Buyer deduction
                 transaction.update(userRef, {
                     credits: userCredits - bookingDetails.cost
                 });
@@ -209,7 +184,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                 className="space-y-12"
                             >
                                 <div>
-                                    <h2 className="text-3xl font-display font-bold mb-2 text-white">Initialize Sync</h2>
+                                    <h2 className="text-3xl font-display font-bold mb-2 text-white">Join Class</h2>
                                     <p className="text-zinc-500 font-medium tracking-tight">Verify protocol parameters before execution.</p>
                                 </div>
 
@@ -255,7 +230,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                         <span className="font-bold text-indigo-500">{credits - bookingDetails.cost} CR</span>
                                     </div>
                                     <GlowButton onClick={handleConfirm} variant="purple" fullWidth size="lg" className="py-5 group">
-                                        Execute Sync <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
+                                        Confirm Enrollment <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
                                     </GlowButton>
                                 </div>
                             </motion.div>

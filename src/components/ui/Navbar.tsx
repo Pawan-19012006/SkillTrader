@@ -20,7 +20,7 @@ const Navbar = () => {
 
     const navLinks = [
         { name: 'Explore Protocols', path: '/explore', icon: <Search size={18} /> },
-        { name: 'Requests Marketplace', path: '/requests', icon: <MessageSquare size={18} /> },
+        { name: 'Community Hub', path: '/community', icon: <MessageSquare size={18} /> },
         { name: 'Sessions', path: '/sessions', icon: <BookOpen size={18} /> },
         { name: 'Teach Mode', path: '/teach', icon: <Rocket size={18} /> },
     ];
