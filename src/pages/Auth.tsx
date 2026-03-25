@@ -1,13 +1,31 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Github, Chrome, ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/ui/Navbar';
 import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
+import { useAuth } from '../context/AuthContext';
 
 const Auth = () => {
     const [isLogin, setIsLogin] = useState(true);
+    const [isAuthenticating, setIsAuthenticating] = useState(false);
+    const { loginWithGoogle } = useAuth();
+    const navigate = useNavigate();
+
+    const handleGoogleLogin = async () => {
+        setIsAuthenticating(true);
+        try {
+            await loginWithGoogle();
+            navigate('/dashboard');
+        } catch (error) {
+            console.error("Login Error:", error);
+            alert("Connection to protocol failed. Please re-verify credentials.");
+        } finally {
+            setIsAuthenticating(false);
+        }
+    };
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-6">
@@ -98,8 +116,14 @@ const Auth = () => {
                             <GlowButton variant="glass" size="sm" className="font-bold text-[9px] uppercase tracking-widest border-zinc-800 bg-zinc-950">
                                 <Github size={16} /> GitHub
                             </GlowButton>
-                            <GlowButton variant="glass" size="sm" className="font-bold text-[9px] uppercase tracking-widest border-zinc-800 bg-zinc-950">
-                                <Chrome size={16} /> Google
+                            <GlowButton
+                                onClick={handleGoogleLogin}
+                                disabled={isAuthenticating}
+                                variant="glass"
+                                size="sm"
+                                className="font-bold text-[9px] uppercase tracking-widest border-zinc-800 bg-zinc-950"
+                            >
+                                <Chrome size={16} /> {isAuthenticating ? 'Syncing...' : 'Google'}
                             </GlowButton>
                         </div>
                     </div>

@@ -5,10 +5,12 @@ import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
-import { db, auth } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const Teach = () => {
+    const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
     const [formData, setFormData] = useState({
@@ -34,25 +36,22 @@ const Teach = () => {
         }
 
         try {
-            const user = auth.currentUser;
             if (!user) {
-                alert('You must be logged in to broadcast a protocol.');
-                setIsSubmitting(false);
+                alert('Authorization required to broadcast protocols.');
+                setIsSubmitting(false); // Ensure submitting state is reset
                 return;
             }
 
             await addDoc(collection(db, 'sessions'), {
-                creatorId: user.uid,
-                creatorName: user.displayName || user.email?.split('@')[0] || 'Anonymous Guide',
-                title: formData.title,
-                description: formData.description,
-                objectives: formData.objectives.split(';').map((s: string) => s.trim()),
-                duration: parseInt(formData.duration),
+                ...formData,
                 price: priceNum,
-                meetLink: formData.meetLink,
-                tags: formData.tags.split(',').map((s: string) => s.trim()),
+                duration: parseInt(formData.duration),
+                creatorId: user.uid,
+                creatorName: user.displayName || user.email?.split('@')[0] || 'Peer',
+                isActive: true,
                 createdAt: serverTimestamp(),
-                isActive: true
+                objectives: formData.objectives.split(';').map(o => o.trim()).filter(o => o !== ''),
+                tags: formData.tags.split(',').map(t => t.trim()).filter(t => t !== '')
             });
 
             setSuccess(true);

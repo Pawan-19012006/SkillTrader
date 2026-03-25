@@ -15,8 +15,9 @@ import GlowButton from '../ui/GlowButton';
 import { useAnimateCounter } from '../../hooks/useAnimateCounter';
 import { fireConfetti } from '../ui/Confetti';
 
-import { db, auth } from '../../lib/firebase';
+import { db } from '../../lib/firebase';
 import { collection, addDoc, serverTimestamp, getDoc, doc } from 'firebase/firestore';
+import { useAuth } from '../../context/AuthContext';
 
 interface BookingConfirmModalProps {
     isOpen: boolean;
@@ -37,17 +38,18 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
     const [meetLink, setMeetLink] = useState<string | null>(null);
     const animatedBalance = useAnimateCounter(currentBalance);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const { user } = useAuth();
 
     const handleConfirm = async () => {
-        if (!bookingDetails || !auth.currentUser) return;
+        if (!bookingDetails || !user) return;
         
         setStep('deducting');
 
         try {
             // Create the booking record in Firestore
             const bookingData = {
-                userId: auth.currentUser.uid,
-                userEmail: auth.currentUser.email,
+                userId: user.uid,
+                userEmail: user.email,
                 sessionId: bookingDetails.sessionId,
                 sessionTitle: bookingDetails.title,
                 guideName: bookingDetails.guide,

@@ -19,32 +19,36 @@ import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { useAnimateCounter } from '../hooks/useAnimateCounter';
 import { cn } from '../utils/cn';
 
-import { db, auth } from '../lib/firebase';
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot, query, where, doc, DocumentSnapshot } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-    const animatedCredits = useAnimateCounter(1250);
-    const animatedSessions = useAnimateCounter(24);
-
+    const { user, loading: authLoading } = useAuth();
     const [sessions, setSessions] = useState<any[]>([]);
     const [bookings, setBookings] = useState<any[]>([]);
+    const [userCredits, setUserCredits] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    const animatedCredits = useAnimateCounter(userCredits);
+    const animatedSessions = useAnimateCounter(24);
+
     useEffect(() => {
-        const user = auth.currentUser;
-        if (!user) {
-            setLoading(false);
+        if (authLoading || !user) {
+            if (!authLoading && !user) setLoading(false);
             return;
         }
 
         // Fetch all sessions (marketplace)
-        const sessionsQuery = query(collection(db, 'sessions'), where('isActive', '==', true), orderBy('createdAt', 'desc'));
+        const sessionsQuery = query(collection(db, 'sessions'), where('isActive', '==', true));
         const unsubscribeSessions = onSnapshot(sessionsQuery, (snapshot) => {
             const sessionsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
+            console.log("Dashboard - Fetched sessions:", sessionsData);
             setSessions(sessionsData);
+            if (bookings.length > 0 || !loading) setLoading(false);
         });
 
         // Fetch user's bookings
@@ -55,9 +59,21 @@ const Dashboard = () => {
             setLoading(false);
         });
 
+        // Fetch user's data (credits)
+        const userRef = doc(db, 'users', user.uid);
+        const unsubscribeUser = onSnapshot(userRef, (docSnap: DocumentSnapshot) => {
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                if (userData) {
+                    setUserCredits(userData.credits || 0);
+                }
+            }
+        });
+
         return () => {
             unsubscribeSessions();
             unsubscribeBookings();
+            unsubscribeUser();
         };
     }, []);
 
@@ -78,7 +94,7 @@ const Dashboard = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
-                        <h1 className="text-4xl font-display font-bold mb-2">Welcome Back, <span className="text-indigo-500">{auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Peer'}</span></h1>
+                        <h1 className="text-4xl font-display font-bold mb-2">Welcome Back, <span className="text-indigo-500">{user?.displayName || user?.email?.split('@')[0] || 'Peer'}</span></h1>
                         <p className="text-zinc-400 font-medium max-w-lg">
                             Your concept synchronization is optimal today. 
                             <span className="block text-zinc-500 italic text-sm mt-1">"Clarity over complexity." — Professional Sync Protocol active.</span>
@@ -137,7 +153,7 @@ const Dashboard = () => {
                                 </div>
                             ) : sessions.map((session, i) => {
                                 const isBooked = bookings.includes(session.id);
-                                const isCreator = session.creatorId === auth.currentUser?.uid;
+                                const isCreator = session.creatorId === user?.uid;
                                 
                                 return (
                                     <GlassCard key={session.id} delay={0.2 + i * 0.05} className={cn("p-5 group transition-all", (!isBooked && !isCreator) ? "bg-zinc-900/30 opacity-70" : "bg-zinc-900 border-indigo-500/20 shadow-sm")}>

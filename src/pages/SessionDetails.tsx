@@ -18,11 +18,13 @@ import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import InteractiveCalendar from '../components/booking/InteractiveCalendar';
 import BookingConfirmModal from '../components/booking/BookingConfirmModal';
-import { db, auth } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const SessionDetails = () => {
     const { id } = useParams();
+    const { user } = useAuth();
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -35,8 +37,7 @@ const SessionDetails = () => {
         sessionId: string;
     } | null>(null);
 
-    const currentUser = auth.currentUser;
-    const isOwner = session?.creatorId === currentUser?.uid;
+    const isOwner = session?.creatorId === user?.uid;
 
     useEffect(() => {
         const fetchSession = async () => {

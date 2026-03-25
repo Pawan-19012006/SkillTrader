@@ -7,22 +7,23 @@ import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
-import { db, auth } from '../lib/firebase';
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const Explore = () => {
+    const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [sessions, setSessions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     
-    const categories = ['All', 'Dev', 'Design', 'Business', 'Creative', 'Music'];
+    const categories = ['All', 'Technical', 'Dev', 'Computer Science', 'Design', 'Business', 'Creative'];
 
     useEffect(() => {
         const q = query(
             collection(db, 'sessions'),
-            where('isActive', '==', true),
-            orderBy('createdAt', 'desc')
+            where('isActive', '==', true)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -30,6 +31,7 @@ const Explore = () => {
                 id: doc.id,
                 ...doc.data()
             }));
+            console.log("Fetched sessions:", sessionsData);
             setSessions(sessionsData);
             setLoading(false);
         }, (error) => {
@@ -173,10 +175,10 @@ const Explore = () => {
                                                 <div className="mt-auto pt-6 border-t border-zinc-800 flex items-center justify-between">
                                                     <div className="flex flex-col">
                                                         <span className="text-[9px] uppercase text-zinc-600 font-bold tracking-widest mb-1">
-                                                            {session.creatorId === auth.currentUser?.uid ? 'Ownership Status' : 'Exchange Value'}
+                                                            {session.creatorId === user?.uid ? 'Ownership Status' : 'Exchange Value'}
                                                         </span>
                                                         <div className="flex items-center gap-1.5 text-xl font-bold font-display text-white">
-                                                            {session.creatorId === auth.currentUser?.uid ? (
+                                                            {session.creatorId === user?.uid ? (
                                                                 <span className="text-zinc-500 italic text-sm tracking-widest uppercase">Your Session</span>
                                                             ) : (
                                                                 <>
@@ -187,7 +189,7 @@ const Explore = () => {
                                                     </div>
                                                     <div className={cn(
                                                         "w-10 h-10 rounded-lg flex items-center justify-center transition-all",
-                                                        session.creatorId === auth.currentUser?.uid 
+                                                        session.creatorId === user?.uid 
                                                             ? "bg-zinc-900 border border-zinc-800 text-zinc-700"
                                                             : "bg-zinc-800 border border-zinc-700 text-zinc-500 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-500"
                                                     )}>
@@ -203,7 +205,7 @@ const Explore = () => {
                     </div>
                 )}
 
-                {filteredConcepts.length === 0 && (
+                {!loading && filteredConcepts.length === 0 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

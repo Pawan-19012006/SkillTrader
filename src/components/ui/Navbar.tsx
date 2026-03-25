@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, Search, Wallet } from 'lucide-react';
+import { Menu, X, Rocket, Search, Wallet, LogOut, User as UserIcon } from 'lucide-react';
 import GlowButton from './GlowButton';
 import { cn } from '../../utils/cn';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const { user, logout } = useAuth();
     const location = useLocation();
 
     useEffect(() => {
@@ -56,12 +58,44 @@ const Navbar = () => {
                         </Link>
                     ))}
                     <div className="h-6 w-[1px] bg-zinc-800 mx-2" />
-                    <Link to="/auth">
-                        <GlowButton variant="glass" size="sm">Log In</GlowButton>
-                    </Link>
-                    <Link to="/auth">
-                        <GlowButton variant="purple" size="sm">Get Started</GlowButton>
-                    </Link>
+                    
+                    {user ? (
+                        <div className="flex items-center gap-4">
+                            <Link to="/profile" className="flex items-center gap-3 group">
+                                <div className="text-right hidden lg:block">
+                                    <div className="text-[10px] text-white font-bold uppercase tracking-widest truncate max-w-[100px]">
+                                        {user.displayName?.split(' ')[0]}
+                                    </div>
+                                    <div className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Authorized</div>
+                                </div>
+                                <div className="w-9 h-9 border border-zinc-800 p-0.5 bg-zinc-900 group-hover:border-indigo-500 transition-colors">
+                                    {user.photoURL ? (
+                                        <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-9 bg-zinc-800 flex items-center justify-center text-zinc-500">
+                                            <UserIcon size={16} />
+                                        </div>
+                                    )}
+                                </div>
+                            </Link>
+                            <button 
+                                onClick={() => logout()}
+                                className="p-2 text-zinc-600 hover:text-white transition-colors"
+                                title="De-authorize Session"
+                            >
+                                <LogOut size={18} />
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <Link to="/auth">
+                                <GlowButton variant="glass" size="sm">Log In</GlowButton>
+                            </Link>
+                            <Link to="/auth">
+                                <GlowButton variant="purple" size="sm">Get Started</GlowButton>
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Toggle */}
@@ -85,16 +119,44 @@ const Navbar = () => {
                                     key={link.name}
                                     to={link.path}
                                     onClick={() => setIsOpen(false)}
-                                    className="flex items-center gap-4 text-lg text-white/70 hover:text-white"
+                                    className="flex items-center gap-4 text-lg font-bold text-white/70 hover:text-white uppercase tracking-tight"
                                 >
                                     {link.icon}
                                     {link.name}
                                 </Link>
                             ))}
                             <hr className="border-white/10" />
-                            <Link to="/auth" onClick={() => setIsOpen(false)}>
-                                <GlowButton variant="purple" fullWidth>Get Started</GlowButton>
-                            </Link>
+                            {user ? (
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 border border-zinc-800 p-0.5 bg-zinc-900">
+                                            {user.photoURL ? (
+                                                <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500">
+                                                    <UserIcon size={20} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-white uppercase tracking-tight">{user.displayName}</div>
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Active Identity</div>
+                                        </div>
+                                    </div>
+                                    <GlowButton 
+                                        onClick={() => { logout(); setIsOpen(false); }} 
+                                        variant="glass" 
+                                        fullWidth
+                                        className="text-red-500 border-red-500/20"
+                                    >
+                                        De-authorize Session
+                                    </GlowButton>
+                                </div>
+                            ) : (
+                                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                                    <GlowButton variant="purple" fullWidth>Get Started</GlowButton>
+                                </Link>
+                            )}
                         </div>
                     </motion.div>
                 )}
