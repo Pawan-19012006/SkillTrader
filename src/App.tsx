@@ -5,7 +5,6 @@ import Explore from './pages/Explore.tsx';
 import Scheduler from './pages/Scheduler.tsx';
 import SessionDetails from './pages/SessionDetails.tsx';
 import Profile from './pages/Profile.tsx';
-import Wallet from './pages/Wallet.tsx';
 import Auth from './pages/Auth.tsx';
 import Teach from './pages/Teach.tsx';
 
@@ -19,7 +18,6 @@ function App() {
                 <Route path="/scheduler" element={<Scheduler />} />
                 <Route path="/session/:id" element={<SessionDetails />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/wallet" element={<Wallet />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/teach" element={<Teach />} />
             </Routes>
