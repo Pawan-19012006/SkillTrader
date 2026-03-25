@@ -35,21 +35,50 @@ const Profile = () => {
     useEffect(() => {
         if (!user) return;
 
-        // Fetch Transactions
-        const transactionsQuery = query(
-            collection(db, 'transactions'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc'),
-            limit(20)
-        );
+        let activeUnsubscribe: (() => void) | null = null;
 
-        const unsubscribeTransactions = onSnapshot(transactionsQuery, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setTransactions(data);
-            setLoading(false);
-        });
+        const fetchTransactions = (useOrderBy = true) => {
+            const baseQuery = collection(db, 'transactions');
+            const constraints: any[] = [where('userId', '==', user.uid)];
+            
+            if (useOrderBy) {
+                constraints.push(orderBy('createdAt', 'desc'));
+            }
+            constraints.push(limit(20));
 
-        return () => unsubscribeTransactions();
+            const q = query(baseQuery, ...constraints);
+
+            const unsub = onSnapshot(q, (snapshot) => {
+                let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                if (!useOrderBy) {
+                    data.sort((a: any, b: any) => {
+                        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+                        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+                        return timeB - timeA;
+                    });
+                }
+
+                setTransactions(data);
+                setLoading(false);
+            }, (error) => {
+                console.error("Transaction subscription error:", error);
+                if ((error.code === 'failed-precondition' || error.message.includes('index')) && useOrderBy) {
+                    console.warn("Retrying ledger fetch with client-side sorting...");
+                    if (activeUnsubscribe) activeUnsubscribe();
+                    activeUnsubscribe = fetchTransactions(false);
+                } else {
+                    setLoading(false);
+                }
+            });
+
+            return unsub;
+        };
+
+        activeUnsubscribe = fetchTransactions(true);
+        return () => {
+            if (activeUnsubscribe) activeUnsubscribe();
+        };
     }, [user]);
 
     const handleUpdateProfile = async () => {

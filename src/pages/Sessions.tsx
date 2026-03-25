@@ -16,6 +16,7 @@ import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
 import { useNavigate } from 'react-router-dom';
+import { generateGoogleCalendarLink } from '../utils/calendarExport';
 
 const Sessions = () => {
     const { user } = useAuth();
@@ -127,20 +128,35 @@ const Sessions = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                         {session.meetLink && (
                             <GlowButton 
                                 onClick={() => window.open(session.meetLink, '_blank')}
                                 variant="purple" 
                                 size="sm"
-                                className="px-6 rounded-none text-[9px] font-bold uppercase tracking-widest"
+                                className="px-4 rounded-none text-[9px] font-bold uppercase tracking-widest h-10"
                             >
                                 <Video size={14} className="mr-2" /> Join Protocol
                             </GlowButton>
                         )}
+                        
+                        {session.selectedDate && session.selectedSlot && (
+                            <button 
+                                onClick={() => {
+                                    const url = generateGoogleCalendarLink(session);
+                                    if (url) window.open(url, '_blank');
+                                }}
+                                className="h-10 px-4 bg-zinc-950 border border-zinc-900 text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all flex items-center justify-center gap-2"
+                                title="Add to Google Calendar"
+                            >
+                                <CalendarIcon size={14} />
+                                <span className="text-[9px] font-bold uppercase tracking-widest hidden md:inline">Calendar Export</span>
+                            </button>
+                        )}
+
                         <button 
                             onClick={() => navigate(`/session/${session.sessionId}`)}
-                            className="p-3 bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-white hover:border-zinc-700 transition-all"
+                            className="h-10 w-10 bg-zinc-950 border border-zinc-900 text-zinc-600 hover:text-white hover:border-zinc-700 transition-all flex items-center justify-center"
                         >
                             <ChevronRight size={18} />
                         </button>
