@@ -31,7 +31,11 @@ const Messages = () => {
 
     // Initial Fetch: Active Chats
     useEffect(() => {
-        if (!user) return;
+        console.log("User UID:", user?.uid);
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
         const chatsQuery = query(
             collection(db, 'chats'),
@@ -40,31 +44,39 @@ const Messages = () => {
         );
 
         const unsubscribe = onSnapshot(chatsQuery, async (snapshot) => {
-            if (snapshot.empty) {
-                setChats([]);
+            try {
+                if (snapshot.empty) {
+                    setChats([]);
+                    setLoading(false);
+                    return;
+                }
+
+                const chatsData = await Promise.all(snapshot.docs.map(async (chatDoc) => {
+                    const data = chatDoc.data();
+                    const otherUserId = data.participants.find((id: string) => id !== user.uid);
+                    
+                    // Fetch other user's basic info for the list
+                    const otherUserSnap = await getDoc(doc(db, 'users', otherUserId));
+                    const otherUserData = otherUserSnap.exists() ? otherUserSnap.data() : { name: 'Unknown Agent', photoURL: '' };
+
+                    return {
+                        id: chatDoc.id,
+                        ...data,
+                        otherUser: {
+                            uid: otherUserId,
+                            name: otherUserData.displayName || otherUserData.name || 'Unknown Agent',
+                            avatar: otherUserData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`
+                        }
+                    };
+                }));
+                setChats(chatsData);
+            } catch (error) {
+                console.error("Synchronization error in chat registry:", error);
+            } finally {
                 setLoading(false);
-                return;
             }
-
-            const chatsData = await Promise.all(snapshot.docs.map(async (chatDoc) => {
-                const data = chatDoc.data();
-                const otherUserId = data.participants.find((id: string) => id !== user.uid);
-                
-                // Fetch other user's basic info for the list
-                const otherUserSnap = await getDoc(doc(db, 'users', otherUserId));
-                const otherUserData = otherUserSnap.exists() ? otherUserSnap.data() : { name: 'Unknown Agent', photoURL: '' };
-
-                return {
-                    id: chatDoc.id,
-                    ...data,
-                    otherUser: {
-                        uid: otherUserId,
-                        name: otherUserData.displayName || otherUserData.name || 'Unknown Agent',
-                        avatar: otherUserData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`
-                    }
-                };
-            }));
-            setChats(chatsData);
+        }, (error) => {
+            console.error("Firestore onSnapshot error:", error);
             setLoading(false);
         });
 
@@ -148,6 +160,13 @@ const Messages = () => {
         }
     };
 
+    useEffect(() => {
+        if (!loading && !user) {
+            navigate('/');
+        }
+    }, [user, loading, navigate]);
+
+    if (loading) return null; // Or a loader
     if (!user) return null;
 
     return (

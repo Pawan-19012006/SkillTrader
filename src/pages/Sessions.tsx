@@ -27,6 +27,12 @@ const Sessions = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!loading && !user) {
+            navigate('/');
+        }
+    }, [user, loading, navigate]);
+
+    useEffect(() => {
         if (!user) return;
 
         // Fetch Learnings (Bookings where user is buyer)

@@ -158,6 +158,12 @@ const Profile = () => {
         };
     }, [targetUid, currentUser, isOwnProfile, activeTab]);
 
+    useEffect(() => {
+        if (!loading && !currentUser) {
+            navigate('/');
+        }
+    }, [currentUser, loading, navigate]);
+
     const handleUpdateProfile = async () => {
         if (!currentUser) return;
         try {
@@ -201,6 +207,14 @@ const Profile = () => {
         
         navigate(`/messages?chatId=${chatId}`);
     };
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+        </div>
+    );
+
+    if (!profileUser) return null;
 
     return (
         <div className="relative min-h-screen">

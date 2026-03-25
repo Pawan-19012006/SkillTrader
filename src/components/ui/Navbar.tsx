@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Rocket, Search, LogOut, User as UserIcon, Zap, MessageSquare, BookOpen, Mail } from 'lucide-react';
 import GlowButton from './GlowButton';
 import { cn } from '../../utils/cn';
@@ -11,6 +11,7 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const { user, logout, credits } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -87,7 +88,10 @@ const Navbar = () => {
                                 </div>
                             </Link>
                             <button 
-                                onClick={() => logout()}
+                                onClick={async () => {
+                                    await logout();
+                                    navigate('/');
+                                }}
                                 className="p-2 text-zinc-600 hover:text-white transition-colors"
                                 title="De-authorize Session"
                             >
