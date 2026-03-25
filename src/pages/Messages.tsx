@@ -160,13 +160,6 @@ const Messages = () => {
         }
     };
 
-    useEffect(() => {
-        if (!loading && !user) {
-            navigate('/');
-        }
-    }, [user, loading, navigate]);
-
-    if (loading) return null; // Or a loader
     if (!user) return null;
 
     return (

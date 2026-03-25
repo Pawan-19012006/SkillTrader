@@ -12,14 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
 const Teach = () => {
-    const { user, loading } = useAuth();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        if (!loading && !user) {
-            navigate('/');
-        }
-    }, [user, loading, navigate]);
+    const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
     const [formData, setFormData] = useState({

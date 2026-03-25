@@ -47,7 +47,7 @@ const Navbar = () => {
 
                 {/* Desktop Nav */}
                 <div className="hidden lg:flex items-center gap-8">
-                    {navLinks.map((link) => (
+                    {user && navLinks.map((link) => (
                         <Link
                             key={link.name}
                             to={link.path}
@@ -59,7 +59,7 @@ const Navbar = () => {
                             {link.name}
                         </Link>
                     ))}
-                    <div className="h-6 w-[1px] bg-zinc-800 mx-2" />
+                    {user && <div className="h-6 w-[1px] bg-zinc-800 mx-2" />}
                     
                     {user && (
                         <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
@@ -90,7 +90,7 @@ const Navbar = () => {
                             <button 
                                 onClick={async () => {
                                     await logout();
-                                    navigate('/');
+                                    navigate('/auth');
                                 }}
                                 className="p-2 text-zinc-600 hover:text-white transition-colors"
                                 title="De-authorize Session"
@@ -126,7 +126,7 @@ const Navbar = () => {
                         className="md:hidden bg-background/95 backdrop-blur-xl border-b border-white/10 overflow-hidden"
                     >
                         <div className="flex flex-col p-6 gap-6">
-                            {navLinks.map((link) => (
+                            {user && navLinks.map((link) => (
                                 <Link
                                     key={link.name}
                                     to={link.path}

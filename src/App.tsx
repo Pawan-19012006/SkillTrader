@@ -8,21 +8,24 @@ import Profiles from './pages/Profile';
 import Auth from './pages/Auth';
 import Teach from './pages/Teach';
 import Messages from './pages/Messages';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
     return (
         <div className="min-h-screen">
             <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/explore" element={<Explore />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/session/:id" element={<SessionDetails />} />
-                <Route path="/sessions" element={<Sessions />} />
-                <Route path="/profile" element={<Profiles />} />
-                <Route path="/profile/:uid" element={<Profiles />} />
-                <Route path="/messages" element={<Messages />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/teach" element={<Teach />} />
+                
+                {/* Protected Synchronization Hubs */}
+                <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+                <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+                <Route path="/session/:id" element={<ProtectedRoute><SessionDetails /></ProtectedRoute>} />
+                <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profiles /></ProtectedRoute>} />
+                <Route path="/profile/:uid" element={<ProtectedRoute><Profiles /></ProtectedRoute>} />
+                <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                <Route path="/teach" element={<ProtectedRoute><Teach /></ProtectedRoute>} />
             </Routes>
         </div>
     );

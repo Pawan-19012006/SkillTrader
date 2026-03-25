@@ -158,12 +158,6 @@ const Profile = () => {
         };
     }, [targetUid, currentUser, isOwnProfile, activeTab]);
 
-    useEffect(() => {
-        if (!loading && !currentUser) {
-            navigate('/');
-        }
-    }, [currentUser, loading, navigate]);
-
     const handleUpdateProfile = async () => {
         if (!currentUser) return;
         try {
