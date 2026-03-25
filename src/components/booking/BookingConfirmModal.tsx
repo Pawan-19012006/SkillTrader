@@ -45,11 +45,10 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
 
         try {
             await runTransaction(db, async (transaction) => {
-                // 1. References
+                // 1. Initial References (Reads)
                 const userRef = doc(db, 'users', user.uid);
                 const sessionRef = doc(db, 'sessions', bookingDetails.sessionId);
                 
-                // 2. Read latest session and user data
                 const userSnap = await transaction.get(userRef);
                 const sessionSnap = await transaction.get(sessionRef);
 
@@ -60,28 +59,36 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                 const sessionData = sessionSnap.data();
                 const creatorId = sessionData.creatorId;
 
-                // 3. Validation: Sufficient Credits
-                if ((userData.credits || 0) < bookingDetails.cost) {
+                // 2. Optional Read: Creator balance
+                let creatorRef = null;
+                let creatorSnap = null;
+                if (creatorId) {
+                    creatorRef = doc(db, 'users', creatorId);
+                    creatorSnap = await transaction.get(creatorRef);
+                }
+
+                // --- ALL READS COMPLETE --- //
+
+                // 3. Validation
+                const userCredits = userData.credits || 0;
+                if (userCredits < bookingDetails.cost) {
                     throw new Error("Insufficient credits for protocol synchronization.");
                 }
 
-                // 4. Update Buyer: Deduct
+                // 4. WRITES: Buyer deduction
                 transaction.update(userRef, {
-                    credits: (userData.credits || 0) - bookingDetails.cost
+                    credits: userCredits - bookingDetails.cost
                 });
 
-                // 5. Update Creator: Add (if creator exists)
-                if (creatorId) {
-                    const creatorRef = doc(db, 'users', creatorId);
-                    const creatorSnap = await transaction.get(creatorRef);
-                    if (creatorSnap.exists()) {
-                        transaction.update(creatorRef, {
-                            credits: (creatorSnap.data().credits || 0) + bookingDetails.cost
-                        });
-                    }
+                // 5. WRITES: Creator reward
+                if (creatorRef && creatorSnap && creatorSnap.exists()) {
+                    const creatorCredits = creatorSnap.data().credits || 0;
+                    transaction.update(creatorRef, {
+                        credits: creatorCredits + bookingDetails.cost
+                    });
                 }
 
-                // 6. Create Booking Record
+                // 6. WRITES: Booking Record
                 const bookingRef = doc(collection(db, 'bookings'));
                 transaction.set(bookingRef, {
                     sessionId: bookingDetails.sessionId,
