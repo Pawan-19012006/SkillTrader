@@ -97,7 +97,7 @@ const Teach = () => {
 
             setSuccess(true);
             setTimeout(() => {
-                window.location.href = '/profile';
+                window.location.href = '/sessions';
             }, 2000);
         } catch (error) {
             console.error('Error creating session:', error);

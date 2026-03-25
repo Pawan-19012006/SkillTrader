@@ -18,6 +18,7 @@ import { fireConfetti } from '../ui/Confetti';
 import { db } from '../../lib/firebase';
 import { collection, serverTimestamp, doc, runTransaction } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface BookingConfirmModalProps {
     isOpen: boolean;
@@ -34,6 +35,7 @@ interface BookingConfirmModalProps {
 }
 const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirmModalProps) => {
     const { user, credits } = useAuth();
+    const navigate = useNavigate();
     const [step, setStep] = useState<'confirm' | 'deducting' | 'success'>('confirm');
     const [meetLink, setMeetLink] = useState<string | null>(null);
     const animatedBalance = useAnimateCounter(credits);
@@ -132,6 +134,28 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     status: 'booked',
                     createdAt: serverTimestamp()
                 });
+
+                // 8. WRITES: Transaction Ledger (Debit for Buyer)
+                const buyerTxRef = doc(collection(db, 'transactions'));
+                transaction.set(buyerTxRef, {
+                    userId: user.uid,
+                    type: 'debit',
+                    amount: bookingDetails.cost,
+                    title: `Sync Acquisition: ${bookingDetails.title}`,
+                    createdAt: serverTimestamp()
+                });
+
+                // 9. WRITES: Transaction Ledger (Credit for Creator)
+                if (creatorId) {
+                    const creatorTxRef = doc(collection(db, 'transactions'));
+                    transaction.set(creatorTxRef, {
+                        userId: creatorId,
+                        type: 'credit',
+                        amount: bookingDetails.cost,
+                        title: `Sync Transmission: ${bookingDetails.title}`,
+                        createdAt: serverTimestamp()
+                    });
+                }
 
                 // Set meetLink for UI
                 setMeetLink(sessionData.meetLink || null);
@@ -305,11 +329,11 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                         </div>
 
                                         <div className="flex gap-4">
-                                            <GlowButton variant="glass" fullWidth size="lg">
+                                            <GlowButton onClick={() => navigate(`/session/${bookingDetails.sessionId}`)} variant="glass" fullWidth size="lg" className="rounded-none text-[10px] uppercase font-bold tracking-widest">
                                                 Sync Details
                                             </GlowButton>
-                                            <GlowButton onClick={onClose} variant="purple" fullWidth size="lg">
-                                                Dashboard
+                                            <GlowButton onClick={() => navigate('/sessions')} variant="purple" fullWidth size="lg" className="rounded-none text-[10px] uppercase font-bold tracking-widest">
+                                                View Sessions
                                             </GlowButton>
                                         </div>
                                     </motion.div>

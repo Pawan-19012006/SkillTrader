@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Shield, 
-    Video, 
     Zap, 
-    BookOpen, 
     Award,
-    Search
+    Edit3,
+    X,
+    TrendingUp,
+    TrendingDown,
+    Clock,
+    User as UserIcon,
+    Mail,
+    Save
 } from 'lucide-react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
@@ -19,134 +24,48 @@ import { cn } from '../utils/cn';
 
 const Profile = () => {
     const { user, credits } = useAuth();
-    const [activeTab, setActiveTab] = useState<'learnings' | 'teachings'>('learnings');
-    const [learnings, setLearnings] = useState<any[]>([]);
-    const [teachings, setTeachings] = useState<any[]>([]);
+    const [transactions, setTransactions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editData, setEditData] = useState({
+        displayName: user?.displayName || '',
+        photoURL: user?.photoURL || ''
+    });
 
     useEffect(() => {
         if (!user) return;
 
-        // Fetch Learnings (Bookings where user is buyer)
-        const bookingsQuery = query(
-            collection(db, 'bookings'),
-            where('buyerId', '==', user.uid)
+        // Fetch Transactions
+        const transactionsQuery = query(
+            collection(db, 'transactions'),
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+            limit(20)
         );
 
-        const unsubscribeLearnings = onSnapshot(bookingsQuery, (snapshot) => {
+        const unsubscribeTransactions = onSnapshot(transactionsQuery, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Sort by date manually since composite index might be missing
-            data.sort((a: any, b: any) => new Date(a.selectedTime).getTime() - new Date(b.selectedTime).getTime());
-            setLearnings(data);
-        });
-
-        // Fetch Teachings (Sessions created by user)
-        const sessionsQuery = query(
-            collection(db, 'sessions'),
-            where('creatorId', '==', user.uid)
-        );
-
-        const unsubscribeTeachings = onSnapshot(sessionsQuery, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setTeachings(data);
+            setTransactions(data);
             setLoading(false);
         });
 
-        return () => {
-            unsubscribeLearnings();
-            unsubscribeTeachings();
-        };
+        return () => unsubscribeTransactions();
     }, [user]);
 
-    const groupSessionsByDate = (sessions: any[]) => {
-        const now = new Date();
-        const todayStr = now.toDateString();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toDateString();
-
-        const groups: { [key: string]: any[] } = {
-            'Today': [],
-            'Tomorrow': [],
-            'Upcoming': []
-        };
-
-        sessions.forEach(session => {
-            // Handle both Firestore Timestamps and ISO strings
-            const date = session.selectedTime ? new Date(session.selectedTime) : (session.createdAt?.toDate ? session.createdAt.toDate() : new Date());
-            const dateStr = date.toDateString();
-
-            if (dateStr === todayStr) {
-                groups['Today'].push(session);
-            } else if (dateStr === tomorrowStr) {
-                groups['Tomorrow'].push(session);
-            } else if (date > now) {
-                groups['Upcoming'].push(session);
-            }
-        });
-
-        return groups;
+    const handleUpdateProfile = async () => {
+        if (!user) return;
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+                displayName: editData.displayName,
+                photoURL: editData.photoURL
+            });
+            setIsEditModalOpen(false);
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("Failed to update identity protocols.");
+        }
     };
-
-    const learningGroups = groupSessionsByDate(learnings);
-    const teachingGroups = groupSessionsByDate(teachings);
-
-    const renderSessionCard = (session: any, type: 'learning' | 'teaching') => (
-        <GlassCard key={session.id} className="p-5 bg-zinc-900/50 border-zinc-800 hover:border-indigo-500/30 transition-all group">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 bg-zinc-800 rounded-lg flex flex-col items-center justify-center border border-zinc-700">
-                        <span className="text-[8px] font-bold uppercase text-zinc-500">
-                            {new Date(session.selectedTime || session.createdAt?.toDate?.() || Date.now()).toLocaleDateString('en-US', { month: 'short' })}
-                        </span>
-                        <span className="text-xl font-display font-bold text-white leading-none">
-                            {new Date(session.selectedTime || session.createdAt?.toDate?.() || Date.now()).getDate()}
-                        </span>
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className={cn(
-                                "text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border",
-                                type === 'learning' ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            )}>
-                                {type === 'learning' ? 'Learning' : 'Teaching'}
-                            </span>
-                            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
-                                {session.selectedSlot || 'Fixed Schedule'}
-                            </span>
-                        </div>
-                        <h4 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{session.sessionTitle || session.title}</h4>
-                        <div className="text-xs text-zinc-500 flex items-center gap-2 mt-1 font-medium italic">
-                            {type === 'learning' ? `Guide: ${session.guideName}` : `${session.duration}m Protocol Sync`}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    {session.meetLink && (
-                        <GlowButton 
-                            onClick={() => window.open(session.meetLink, '_blank')}
-                            variant="purple" 
-                            size="sm"
-                            className="gap-2"
-                        >
-                            <Video size={14} /> Join Now
-                        </GlowButton>
-                    )}
-                    <GlowButton 
-                        onClick={() => window.location.href = `/session/${session.sessionId || session.id}`}
-                        variant="glass" 
-                        size="sm"
-                    >
-                        Details
-                    </GlowButton>
-                </div>
-            </div>
-        </GlassCard>
-    );
-
-    const activeGroups = activeTab === 'learnings' ? learningGroups : teachingGroups;
-    const hasData = Object.values(activeGroups).some(group => group.length > 0);
 
     return (
         <div className="relative min-h-screen">
@@ -154,167 +73,206 @@ const Profile = () => {
             <Navbar />
 
             <main className="pt-28 pb-12 px-6 max-w-7xl mx-auto">
-                <header className="mb-12">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col md:flex-row items-center md:items-start gap-10"
-                    >
-                        <div className="relative">
-                            <div className="w-32 h-32 rounded-2xl bg-zinc-950 border-2 border-zinc-800 p-1 shadow-inner">
-                                <div className="w-full h-full bg-zinc-900 rounded-xl flex items-center justify-center overflow-hidden">
-                                    <img 
-                                        src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid}`} 
-                                        alt="Avatar" 
-                                        className="w-full h-full object-cover grayscale opacity-80" 
-                                    />
-                                </div>
-                            </div>
-                            <div className="absolute -bottom-2 -right-2 bg-indigo-600 text-white p-2 rounded-lg shadow-sm border border-indigo-500">
-                                <Award size={18} />
-                            </div>
-                        </div>
-
-                        <div className="flex-grow text-center md:text-left">
-                            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-                                <h1 className="text-4xl font-display font-bold text-white tracking-tight uppercase">
-                                    {user?.displayName || user?.email?.split('@')[0]}
-                                </h1>
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
-                                    <Shield size={12} /> Verified Sync Agent
-                                </span>
-                            </div>
-
-                            <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
-                                <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
-                                    <div className="p-1.5 rounded bg-indigo-500/10 text-indigo-500">
-                                        <Zap size={14} />
-                                    </div>
-                                    <div>
-                                        <div className="text-[8px] text-zinc-600 uppercase font-bold tracking-widest">Available Credits</div>
-                                        <div className="text-lg font-display font-bold text-white leading-none">{credits} CR</div>
-                                    </div>
-                                </div>
-                                <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center gap-3">
-                                    <div className="p-1.5 rounded bg-zinc-800 text-zinc-400">
-                                        <BookOpen size={14} />
-                                    </div>
-                                    <div>
-                                        <div className="text-[8px] text-zinc-600 uppercase font-bold tracking-widest">Total Syncs</div>
-                                        <div className="text-lg font-display font-bold text-white leading-none">{learnings.length + teachings.length}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </header>
-
-                {/* Tabs */}
-                <div className="flex gap-4 mb-10 border-b border-zinc-800">
-                    <button 
-                        onClick={() => setActiveTab('learnings')}
-                        className={cn(
-                            "pb-4 px-2 text-xs font-bold uppercase tracking-widest transition-all relative",
-                            activeTab === 'learnings' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
-                        )}
-                    >
-                        Learnings
-                        {activeTab === 'learnings' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />}
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('teachings')}
-                        className={cn(
-                            "pb-4 px-2 text-xs font-bold uppercase tracking-widest transition-all relative",
-                            activeTab === 'teachings' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
-                        )}
-                    >
-                        Teachings
-                        {activeTab === 'teachings' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />}
-                    </button>
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div className="lg:col-span-2 space-y-12">
-                        {loading ? (
-                            <div className="flex items-center justify-center py-24">
-                                <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-                            </div>
-                        ) : !hasData ? (
-                            <div className="py-24 text-center border border-dashed border-zinc-800">
-                                <Search className="mx-auto text-zinc-800 mb-4" size={48} />
-                                <h3 className="text-xl font-display font-bold text-white uppercase italic">No Protocol Detected</h3>
-                                <p className="text-zinc-600 text-xs font-bold uppercase tracking-widest mt-2 px-12 leading-relaxed">
-                                    {activeTab === 'learnings' 
-                                        ? "Your synchronization ledger is currently empty. Explore the marketplace to initialize your first protocol."
-                                        : "You haven't published any knowledge assets yet. Switch to Teach Mode to share your concepts."}
-                                </p>
-                                <GlowButton 
-                                    onClick={() => window.location.href = activeTab === 'learnings' ? '/explore' : '/teach'}
-                                    variant="purple" 
-                                    size="sm" 
-                                    className="mt-8 px-8"
-                                >
-                                    {activeTab === 'learnings' ? 'Explore Protocols' : 'Start Teaching'}
-                                </GlowButton>
-                            </div>
-                        ) : (
-                            <div className="space-y-12">
-                                {['Today', 'Tomorrow', 'Upcoming'].map(group => (
-                                    activeGroups[group].length > 0 && (
-                                        <div key={group} className="space-y-4">
-                                            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-indigo-500/60 flex items-center gap-4">
-                                                <span>{group}</span>
-                                                <div className="h-[1px] flex-grow bg-zinc-800" />
-                                            </h3>
-                                            <div className="space-y-4">
-                                                {activeGroups[group].map(session => renderSessionCard(session, activeTab === 'learnings' ? 'learning' : 'teaching'))}
-                                            </div>
-                                        </div>
-                                    )
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
+                    {/* Identity & Stats Column */}
                     <aside className="space-y-8">
+                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 relative overflow-hidden" hover={false}>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16" />
+                            
+                            <div className="flex flex-col items-center text-center space-y-6 relative z-10">
+                                <div className="relative group">
+                                    <div className="w-32 h-32 rounded-none bg-zinc-950 border-2 border-zinc-800 p-1 shadow-inner overflow-hidden">
+                                        <img 
+                                            src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid}`} 
+                                            alt="Avatar" 
+                                            className="w-full h-full object-cover grayscale opacity-80" 
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        className="absolute -bottom-2 -right-2 bg-indigo-600 p-2 text-white hover:bg-indigo-500 transition-all border border-indigo-400 shadow-lg"
+                                    >
+                                        <Edit3 size={14} />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <h1 className="text-3xl font-display font-bold text-white uppercase tracking-tighter italic">
+                                        {user?.displayName || user?.email?.split('@')[0]}
+                                    </h1>
+                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+                                        <Shield size={12} className="text-indigo-500" /> Verified Sync Agent
+                                    </p>
+                                </div>
+
+                                <div className="w-full pt-8 space-y-4 border-t border-zinc-900">
+                                    <div className="flex items-center gap-4 text-zinc-500">
+                                        <Mail size={14} className="text-zinc-700" />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">{user?.email}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-zinc-500">
+                                        <Clock size={14} className="text-zinc-700" />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Active Tier: Level 01</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </GlassCard>
+
+                        {/* Credits Display */}
+                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 border-l-4 border-l-indigo-600" hover={false}>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-6 flex items-center gap-2">
+                                <Zap size={14} className="text-indigo-500" /> Operational Credits
+                            </h4>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-6xl font-display font-bold text-white tracking-tighter">{credits}</span>
+                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Unit CR</span>
+                            </div>
+                            <GlowButton variant="glass" fullWidth size="lg" className="mt-8 rounded-none text-[10px] font-bold uppercase tracking-widest">
+                                Expand Ledger
+                            </GlowButton>
+                        </GlassCard>
+
                         <GlassCard className="p-8 bg-zinc-900 border-zinc-800" hover={false}>
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest mb-8 text-zinc-500">Service Badges</h4>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest mb-8 text-zinc-500">Mastery Badges</h4>
                             <div className="grid grid-cols-4 gap-3">
                                 {[...Array(8)].map((_, i) => (
                                     <div key={i} className={cn(
-                                        "aspect-square rounded-lg flex items-center justify-center border transition-all shadow-sm",
-                                        i < 3 ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20 shadow-[0_0_10px_rgba(79,70,229,0.1)]" : "bg-zinc-950 text-zinc-800 border-zinc-900"
+                                        "aspect-square rounded-none flex items-center justify-center border transition-all shadow-sm",
+                                        i < 3 ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20 shadow-[0_0_10px_rgba(79,70,229,0.1)]" : "bg-zinc-950 text-zinc-800 border-zinc-800"
                                     )}>
                                         <Award size={18} />
                                     </div>
                                 ))}
                             </div>
-                            <p className="mt-8 text-[9px] text-zinc-600 text-center font-bold uppercase tracking-widest leading-relaxed">
-                                Complete {5 - learnings.length > 0 ? 5 - learnings.length : 1} more validations to unlock <span className="text-zinc-400">The Architect</span>.
-                            </p>
-                        </GlassCard>
-
-                        <GlassCard className="bg-zinc-900 border-zinc-800 p-8" hover={true}>
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest mb-8 text-zinc-500">Protocol Performance</h4>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between text-[9px] mb-2 font-bold uppercase tracking-widest text-zinc-600">
-                                        <span>Trust Vector</span>
-                                        <span className="text-indigo-400">92%</span>
-                                    </div>
-                                    <div className="h-1 bg-zinc-950 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.3)] w-[92%]" />
-                                    </div>
-                                </div>
-                                <div className="pt-4 border-t border-zinc-800/50">
-                                    <div className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Mastery Level</div>
-                                    <div className="text-lg font-display font-bold text-white mt-1 italic uppercase tracking-tighter">Level {Math.floor((learnings.length + teachings.length) / 5) + 1}</div>
-                                </div>
-                            </div>
                         </GlassCard>
                     </aside>
+
+                    {/* Transaction Ledger Column */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-3xl font-display font-bold text-white uppercase italic tracking-tighter leading-none mb-2">
+                                    Protocol <span className="text-indigo-600">Ledger</span>
+                                </h2>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Historical Transaction Audit</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {loading ? (
+                                <div className="py-24 flex justify-center">
+                                    <div className="w-8 h-8 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                                </div>
+                            ) : transactions.length === 0 ? (
+                                <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
+                                    <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">No sync history detected.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {transactions.map((tx) => (
+                                        <GlassCard key={tx.id} className="p-5 bg-zinc-900/40 border-zinc-800 group rounded-none" hover={true}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-5">
+                                                    <div className={cn(
+                                                        "w-12 h-12 flex items-center justify-center rounded-none border",
+                                                        tx.type === 'credit' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-red-500/10 border-red-500/20 text-red-500"
+                                                    )}>
+                                                        {tx.type === 'credit' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-[11px] font-bold text-white uppercase tracking-widest">{tx.title}</h4>
+                                                        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">
+                                                            {tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : 'Processing...'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className={cn(
+                                                    "text-lg font-display font-bold tabular-nums tracking-tighter",
+                                                    tx.type === 'credit' ? "text-emerald-500" : "text-red-500"
+                                                )}>
+                                                    {tx.type === 'credit' ? '+' : '-'}{tx.amount}
+                                                </div>
+                                            </div>
+                                        </GlassCard>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </main>
+
+            {/* Edit Profile Modal */}
+            <AnimatePresence>
+                {isEditModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsEditModalOpen(false)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                        />
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-md bg-zinc-950 border border-zinc-800 p-10 space-y-10 rounded-none shadow-2xl"
+                        >
+                            <button 
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="absolute top-6 right-6 text-zinc-600 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div>
+                                <h3 className="text-2xl font-display font-bold text-white uppercase italic tracking-tighter">Adjust Identity</h3>
+                                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-1">Update verified sync credentials.</p>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Universal Display Name</label>
+                                    <div className="relative">
+                                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" size={14} />
+                                        <input 
+                                            type="text"
+                                            value={editData.displayName}
+                                            onChange={(e) => setEditData({...editData, displayName: e.target.value})}
+                                            className="w-full bg-zinc-900 border border-zinc-800 py-4 pl-12 pr-4 text-xs font-bold text-white focus:outline-none focus:border-indigo-600/50"
+                                            placeholder="Identity Label"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Visual Metadata (Avatar URL)</label>
+                                    <div className="relative">
+                                        <Edit3 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" size={14} />
+                                        <input 
+                                            type="text"
+                                            value={editData.photoURL}
+                                            onChange={(e) => setEditData({...editData, photoURL: e.target.value})}
+                                            className="w-full bg-zinc-900 border border-zinc-800 py-4 pl-12 pr-4 text-xs font-bold text-white focus:outline-none focus:border-indigo-600/50"
+                                            placeholder="https://image-protocol.io/..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <GlowButton 
+                                onClick={handleUpdateProfile}
+                                variant="purple" 
+                                fullWidth 
+                                className="py-5 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]"
+                            >
+                                <Save size={16} className="mr-2" /> Commit Identity Changes
+                            </GlowButton>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
