@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, Search, LogOut, User as UserIcon, Zap } from 'lucide-react';
+import { Menu, X, Rocket, Search, LogOut, User as UserIcon, Zap, MessageSquare } from 'lucide-react';
 import GlowButton from './GlowButton';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../context/AuthContext';
@@ -20,7 +20,7 @@ const Navbar = () => {
 
     const navLinks = [
         { name: 'Explore Protocols', path: '/explore', icon: <Search size={18} /> },
-        { name: 'Sync Scheduler', path: '/scheduler', icon: <Rocket size={18} /> },
+        { name: 'Requests Marketplace', path: '/requests', icon: <MessageSquare size={18} /> },
         { name: 'Teach Mode', path: '/teach', icon: <Rocket size={18} /> },
     ];
 

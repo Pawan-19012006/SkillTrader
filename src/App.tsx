@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import Explore from './pages/Explore.tsx';
-import Scheduler from './pages/Scheduler.tsx';
+import Requests from './pages/Requests.tsx';
 import SessionDetails from './pages/SessionDetails.tsx';
 import Profile from './pages/Profile.tsx';
 import Auth from './pages/Auth.tsx';
@@ -15,7 +15,7 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/explore" element={<Explore />} />
-                <Route path="/scheduler" element={<Scheduler />} />
+                <Route path="/requests" element={<Requests />} />
                 <Route path="/session/:id" element={<SessionDetails />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/auth" element={<Auth />} />

@@ -16,7 +16,6 @@ import Navbar from '../components/ui/Navbar';
 import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
-import InteractiveCalendar from '../components/booking/InteractiveCalendar';
 import BookingConfirmModal from '../components/booking/BookingConfirmModal';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -57,16 +56,17 @@ const SessionDetails = () => {
         fetchSession();
     }, [id]);
 
-    const handleSelectSlot = (date: Date, slot: string) => {
+    const handleInitializeSync = () => {
         if (!session) return;
         setBookingDetails({
-            date,
-            slot,
+            date: new Date(),
+            slot: "Instant Sync Protocol",
             guide: session.creatorName,
             cost: session.price,
             title: session.title,
             sessionId: session.id
         });
+        setIsBookingOpen(true);
     };
 
     return (
@@ -166,7 +166,7 @@ const SessionDetails = () => {
                                     )}
                                     <div className="flex gap-4 pt-4">
                                         <GlowButton 
-                                            onClick={() => setIsBookingOpen(true)} 
+                                            onClick={handleInitializeSync} 
                                             variant="purple" 
                                             size="lg" 
                                             className="px-10 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]"
@@ -282,11 +282,20 @@ const SessionDetails = () => {
                             className="relative w-full max-w-2xl h-full bg-zinc-950 border-l border-zinc-800 p-8 md:p-12 overflow-y-auto"
                         >
                             <div className="mb-12">
-                                <h2 className="text-4xl font-display font-bold mb-2 uppercase italic tracking-tighter text-white">Select Sync Slot</h2>
-                                <p className="text-zinc-500 font-medium uppercase tracking-tight text-sm">Synchronize your timeline with {session?.creatorName}'s clarity.</p>
+                                <h2 className="text-4xl font-display font-bold mb-2 uppercase italic tracking-tighter text-white">Initialize Sync</h2>
+                                <p className="text-zinc-500 font-medium uppercase tracking-tight text-sm">Reviewing protocol parameters for {session?.creatorName}'s clarity session.</p>
                             </div>
 
-                            <InteractiveCalendar onSelectSlot={handleSelectSlot} />
+                            <div className="space-y-6">
+                                <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-none border-l-4 border-l-indigo-500">
+                                    <h4 className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-2">Selected Mode</h4>
+                                    <p className="text-lg text-white font-bold uppercase italic tracking-tighter">High-Frequency Instant Sync</p>
+                                </div>
+                                <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-none border-l-4 border-l-indigo-500">
+                                    <h4 className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-2">Temporal Marker</h4>
+                                    <p className="text-lg text-white font-bold uppercase italic tracking-tighter">Synchronizing @ {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Immediate)</p>
+                                </div>
+                            </div>
 
                             {/* Confirm Selection Area */}
                             <AnimatePresence>
