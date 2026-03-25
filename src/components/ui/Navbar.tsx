@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, Search, Wallet, LogOut, User as UserIcon } from 'lucide-react';
+import { Menu, X, Rocket, Search, Wallet, LogOut, User as UserIcon, Zap } from 'lucide-react';
 import GlowButton from './GlowButton';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../context/AuthContext';
@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const { user, logout } = useAuth();
+    const { user, logout, credits } = useAuth();
     const location = useLocation();
 
     useEffect(() => {
@@ -58,6 +58,13 @@ const Navbar = () => {
                         </Link>
                     ))}
                     <div className="h-6 w-[1px] bg-zinc-800 mx-2" />
+                    
+                    {user && (
+                        <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
+                            <Zap size={12} className="text-indigo-500" />
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{credits} CR</span>
+                        </div>
+                    )}
                     
                     {user ? (
                         <div className="flex items-center gap-4">

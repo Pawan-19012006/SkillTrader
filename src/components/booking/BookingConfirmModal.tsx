@@ -16,7 +16,7 @@ import { useAnimateCounter } from '../../hooks/useAnimateCounter';
 import { fireConfetti } from '../ui/Confetti';
 
 import { db } from '../../lib/firebase';
-import { collection, addDoc, serverTimestamp, getDoc, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, runTransaction } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 
 interface BookingConfirmModalProps {
@@ -31,14 +31,12 @@ interface BookingConfirmModalProps {
         sessionId: string;
     } | null;
 }
-
 const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirmModalProps) => {
+    const { user, credits } = useAuth();
     const [step, setStep] = useState<'confirm' | 'deducting' | 'success'>('confirm');
-    const [currentBalance, setCurrentBalance] = useState(1250);
     const [meetLink, setMeetLink] = useState<string | null>(null);
-    const animatedBalance = useAnimateCounter(currentBalance);
+    const animatedBalance = useAnimateCounter(credits);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const { user } = useAuth();
 
     const handleConfirm = async () => {
         if (!bookingDetails || !user) return;
@@ -46,42 +44,73 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
         setStep('deducting');
 
         try {
-            // Create the booking record in Firestore
-            const bookingData = {
-                userId: user.uid,
-                userEmail: user.email,
-                sessionId: bookingDetails.sessionId,
-                sessionTitle: bookingDetails.title,
-                guideName: bookingDetails.guide,
-                selectedTime: bookingDetails.date.toISOString(),
-                selectedSlot: bookingDetails.slot,
-                status: 'confirmed',
-                creditsSpent: bookingDetails.cost,
-                createdAt: serverTimestamp()
-            };
-
-            const docRef = await addDoc(collection(db, 'bookings'), bookingData);
-
-            if (docRef.id) {
-                // Fetch the meetLink from the session doc
+            await runTransaction(db, async (transaction) => {
+                // 1. References
+                const userRef = doc(db, 'users', user.uid);
                 const sessionRef = doc(db, 'sessions', bookingDetails.sessionId);
-                const sessionSnap = await getDoc(sessionRef);
                 
-                if (sessionSnap.exists()) {
-                    setMeetLink(sessionSnap.data().meetLink);
+                // 2. Read latest session and user data
+                const userSnap = await transaction.get(userRef);
+                const sessionSnap = await transaction.get(sessionRef);
+
+                if (!userSnap.exists()) throw new Error("User record not found in ledger.");
+                if (!sessionSnap.exists()) throw new Error("Session protocol not found.");
+
+                const userData = userSnap.data();
+                const sessionData = sessionSnap.data();
+                const creatorId = sessionData.creatorId;
+
+                // 3. Validation: Sufficient Credits
+                if ((userData.credits || 0) < bookingDetails.cost) {
+                    throw new Error("Insufficient credits for protocol synchronization.");
                 }
-                
-                setTimeout(() => {
-                    setCurrentBalance(prev => prev - (bookingDetails.cost || 0));
-                    setTimeout(() => {
-                        setStep('success');
-                        fireConfetti();
-                    }, 1000);
-                }, 500);
-            }
-        } catch (error) {
-            console.error('Booking error:', error);
-            alert('Booking protocol failed. Please re-verify connection.');
+
+                // 4. Update Buyer: Deduct
+                transaction.update(userRef, {
+                    credits: (userData.credits || 0) - bookingDetails.cost
+                });
+
+                // 5. Update Creator: Add (if creator exists)
+                if (creatorId) {
+                    const creatorRef = doc(db, 'users', creatorId);
+                    const creatorSnap = await transaction.get(creatorRef);
+                    if (creatorSnap.exists()) {
+                        transaction.update(creatorRef, {
+                            credits: (creatorSnap.data().credits || 0) + bookingDetails.cost
+                        });
+                    }
+                }
+
+                // 6. Create Booking Record
+                const bookingRef = doc(collection(db, 'bookings'));
+                transaction.set(bookingRef, {
+                    sessionId: bookingDetails.sessionId,
+                    sessionTitle: bookingDetails.title,
+                    buyerId: user.uid,
+                    buyerEmail: user.email,
+                    creatorId: creatorId,
+                    guideName: bookingDetails.guide,
+                    price: bookingDetails.cost,
+                    selectedTime: bookingDetails.date.toISOString(),
+                    selectedSlot: bookingDetails.slot,
+                    meetLink: sessionData.meetLink || null,
+                    status: 'booked',
+                    createdAt: serverTimestamp()
+                });
+
+                // Set meetLink for UI
+                setMeetLink(sessionData.meetLink || null);
+            });
+
+            // Success Transition
+            setTimeout(() => {
+                setStep('success');
+                fireConfetti();
+            }, 1000);
+
+        } catch (error: any) {
+            console.error('Transaction failed:', error);
+            alert(error.message || 'Atomic transaction failed. Ledger integrity maintained.');
             setStep('confirm');
         }
     };
@@ -160,11 +189,11 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                 <div className="space-y-6 pt-12 border-t border-zinc-800">
                                     <div className="flex justify-between items-center px-2">
                                         <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Current Balance</span>
-                                        <span className="font-bold text-white">1,250 CR</span>
+                                        <span className="font-bold text-white">{credits} CR</span>
                                     </div>
                                     <div className="flex justify-between items-center px-2">
                                         <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Execution Result</span>
-                                        <span className="font-bold text-indigo-500">{1250 - bookingDetails.cost} CR</span>
+                                        <span className="font-bold text-indigo-500">{credits - bookingDetails.cost} CR</span>
                                     </div>
                                     <GlowButton onClick={handleConfirm} variant="purple" fullWidth size="lg" className="py-5 group">
                                         Execute Sync <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />

@@ -20,18 +20,17 @@ import { useAnimateCounter } from '../hooks/useAnimateCounter';
 import { cn } from '../utils/cn';
 
 import { db } from '../lib/firebase';
-import { collection, onSnapshot, query, where, doc, DocumentSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-    const { user, loading: authLoading } = useAuth();
+    const { user, credits, loading: authLoading } = useAuth();
+    const animatedCredits = useAnimateCounter(credits);
+    const animatedSessions = useAnimateCounter(24);
+
     const [sessions, setSessions] = useState<any[]>([]);
     const [bookings, setBookings] = useState<any[]>([]);
-    const [userCredits, setUserCredits] = useState(0);
     const [loading, setLoading] = useState(true);
-
-    const animatedCredits = useAnimateCounter(userCredits);
-    const animatedSessions = useAnimateCounter(24);
 
     useEffect(() => {
         if (authLoading || !user) {
@@ -59,21 +58,9 @@ const Dashboard = () => {
             setLoading(false);
         });
 
-        // Fetch user's data (credits)
-        const userRef = doc(db, 'users', user.uid);
-        const unsubscribeUser = onSnapshot(userRef, (docSnap: DocumentSnapshot) => {
-            if (docSnap.exists()) {
-                const userData = docSnap.data();
-                if (userData) {
-                    setUserCredits(userData.credits || 0);
-                }
-            }
-        });
-
         return () => {
             unsubscribeSessions();
             unsubscribeBookings();
-            unsubscribeUser();
         };
     }, []);
 

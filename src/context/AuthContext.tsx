@@ -6,10 +6,11 @@ import {
     User 
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '../lib/firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 interface AuthContextType {
     user: User | null;
+    credits: number;
     loading: boolean;
     loginWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
@@ -19,15 +20,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [credits, setCredits] = useState<number>(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
+        let unsubscribeCredits: (() => void) | undefined;
 
+        const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+            setUser(currentUser);
+            
             if (currentUser) {
-                // Sync user to Firestore
+                // Initial sync/check for new user
                 const userRef = doc(db, 'users', currentUser.uid);
                 const userSnap = await getDoc(userRef);
 
@@ -38,13 +41,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         email: currentUser.email,
                         photoURL: currentUser.photoURL,
                         createdAt: serverTimestamp(),
-                        credits: 100 // Starting credits for new users
+                        credits: 100
                     });
                 }
+
+                // Set up real-time listener for credits
+                unsubscribeCredits = onSnapshot(userRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        setCredits(snapshot.data().credits || 0);
+                        console.log("Real-time credits update:", snapshot.data().credits);
+                    }
+                });
+            } else {
+                setCredits(0);
+                if (unsubscribeCredits) unsubscribeCredits();
             }
+            
+            setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeAuth();
+            if (unsubscribeCredits) unsubscribeCredits();
+        };
     }, []);
 
     const loginWithGoogle = async () => {
@@ -66,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, credits, loading, loginWithGoogle, logout }}>
             {children}
         </AuthContext.Provider>
     );
