@@ -17,9 +17,10 @@ const Navbar = () => {
     }, []);
 
     const navLinks = [
-        { name: 'Explore Concepts', path: '/explore', icon: <Search size={18} /> },
+        { name: 'Explore Protocols', path: '/explore', icon: <Search size={18} /> },
         { name: 'Sync Scheduler', path: '/scheduler', icon: <Rocket size={18} /> },
-        { name: 'Knowledge Wallet', path: '/wallet', icon: <Wallet size={18} /> },
+        { name: 'Teach Mode', path: '/teach', icon: <Rocket size={18} /> },
+        { name: 'Knowledge Assets', path: '/wallet', icon: <Wallet size={18} /> },
     ];
 
     return (
@@ -33,10 +34,10 @@ const Navbar = () => {
                         <Rocket className="text-white" size={20} />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-display font-bold text-white tracking-tighter">
-                            ConceptSwap
+                        <span className="text-2xl font-display font-bold text-white tracking-tighter uppercase italic">
+                            SkillTrader
                         </span>
-                        <span className="text-[8px] uppercase tracking-[0.4em] text-zinc-500 font-bold -mt-0.5">Clarity over complexity</span>
+                        <span className="text-[8px] uppercase tracking-[0.4em] text-zinc-500 font-bold -mt-0.5 whitespace-nowrap">Clarity over complexity</span>
                     </div>
                 </Link>
 

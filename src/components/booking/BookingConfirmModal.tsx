@@ -15,6 +15,9 @@ import GlowButton from '../ui/GlowButton';
 import { useAnimateCounter } from '../../hooks/useAnimateCounter';
 import { fireConfetti } from '../ui/Confetti';
 
+import { db, auth } from '../../lib/firebase';
+import { collection, addDoc, serverTimestamp, getDoc, doc } from 'firebase/firestore';
+
 interface BookingConfirmModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -23,6 +26,8 @@ interface BookingConfirmModalProps {
         slot: string;
         guide: string;
         cost: number;
+        title: string;
+        sessionId: string;
     } | null;
 }
 
@@ -34,28 +39,36 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const handleConfirm = async () => {
-        if (!bookingDetails) return;
+        if (!bookingDetails || !auth.currentUser) return;
         
         setStep('deducting');
 
         try {
-            const response = await fetch('http://localhost:5001/book-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: 'user_123', // Hardcoded for demo
-                    conceptId: 'session_1', // In a real app, this would come from props
-                    conceptName: 'Recursion Explained Simply',
-                    guideName: bookingDetails.guide,
-                    selectedTime: bookingDetails.date.toISOString()
-                })
-            });
+            // Create the booking record in Firestore
+            const bookingData = {
+                userId: auth.currentUser.uid,
+                userEmail: auth.currentUser.email,
+                sessionId: bookingDetails.sessionId,
+                sessionTitle: bookingDetails.title,
+                guideName: bookingDetails.guide,
+                selectedTime: bookingDetails.date.toISOString(),
+                selectedSlot: bookingDetails.slot,
+                status: 'confirmed',
+                creditsSpent: bookingDetails.cost,
+                createdAt: serverTimestamp()
+            };
 
-            const data = await response.json();
+            const docRef = await addDoc(collection(db, 'bookings'), bookingData);
 
-            if (data.success) {
-                setMeetLink(data.meetLink);
-                // Simulate deduction animation duration
+            if (docRef.id) {
+                // Fetch the meetLink from the session doc
+                const sessionRef = doc(db, 'sessions', bookingDetails.sessionId);
+                const sessionSnap = await getDoc(sessionRef);
+                
+                if (sessionSnap.exists()) {
+                    setMeetLink(sessionSnap.data().meetLink);
+                }
+                
                 setTimeout(() => {
                     setCurrentBalance(prev => prev - (bookingDetails.cost || 0));
                     setTimeout(() => {
@@ -63,13 +76,10 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                         fireConfetti();
                     }, 1000);
                 }, 500);
-            } else {
-                alert('Booking failed: ' + data.message);
-                setStep('confirm');
             }
         } catch (error) {
             console.error('Booking error:', error);
-            alert('Booking service unreachable.');
+            alert('Booking protocol failed. Please re-verify connection.');
             setStep('confirm');
         }
     };
@@ -114,14 +124,14 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                 </div>
 
                                 <div className="space-y-6">
-                                    <GlassCard className="p-6 bg-zinc-900 border-zinc-800" hover={false}>
+                                    <GlassCard className="p-6 bg-zinc-900 border-zinc-800 rounded-none border-l-2 border-indigo-500" hover={false}>
                                         <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-zinc-950 rounded-xl flex flex-col items-center justify-center border border-zinc-800">
+                                            <div className="w-16 h-16 bg-zinc-950 rounded-none flex flex-col items-center justify-center border border-zinc-800">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{months[bookingDetails.date.getMonth()]}</span>
                                                 <span className="text-2xl font-display font-bold text-white">{bookingDetails.date.getDate()}</span>
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-lg text-white uppercase tracking-tight">Recursion Explained</h4>
+                                                <h4 className="font-bold text-lg text-white uppercase tracking-tighter italic">{bookingDetails.title}</h4>
                                                 <div className="flex items-center gap-2 text-zinc-500 text-xs mt-1 font-bold uppercase tracking-widest">
                                                     <User size={12} className="text-indigo-500" /> {bookingDetails.guide}
                                                 </div>
@@ -130,17 +140,17 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                     </GlassCard>
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                                        <div className="p-5 rounded-none bg-zinc-900 border border-zinc-800 shadow-sm transition-colors hover:border-zinc-700">
                                             <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
                                                 <Clock size={12} className="text-indigo-500" /> Time Slot
                                             </div>
-                                            <div className="font-bold text-white text-sm">{bookingDetails.slot}</div>
+                                            <div className="font-bold text-white text-xs uppercase tracking-tight">{bookingDetails.slot}</div>
                                         </div>
-                                        <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                                        <div className="p-5 rounded-none bg-zinc-900 border border-zinc-800 shadow-sm transition-colors hover:border-zinc-700">
                                             <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
                                                 <Wallet size={12} className="text-zinc-400" /> Protocol Cost
                                             </div>
-                                            <div className="font-bold text-indigo-500 text-sm">{bookingDetails.cost} CR</div>
+                                            <div className="font-bold text-indigo-500 text-xs uppercase tracking-tight">{bookingDetails.cost} CR</div>
                                         </div>
                                     </div>
                                 </div>

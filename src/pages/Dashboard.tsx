@@ -11,6 +11,7 @@ import {
     CheckCircle2,
     Clock3
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/ui/Navbar';
 import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
@@ -18,28 +19,46 @@ import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { useAnimateCounter } from '../hooks/useAnimateCounter';
 import { cn } from '../utils/cn';
 
+import { db, auth } from '../lib/firebase';
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+
 const Dashboard = () => {
     const animatedCredits = useAnimateCounter(1250);
     const animatedSessions = useAnimateCounter(24);
 
     const [sessions, setSessions] = useState<any[]>([]);
+    const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchSessions = async () => {
-            try {
-                // Hardcoded user_123 for demo purposes
-                const response = await fetch('http://localhost:5001/sessions?userId=user_123');
-                const data = await response.json();
-                setSessions(data);
-            } catch (error) {
-                console.error('Failed to fetch sessions:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        const user = auth.currentUser;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
-        fetchSessions();
+        // Fetch all sessions (marketplace)
+        const sessionsQuery = query(collection(db, 'sessions'), where('isActive', '==', true), orderBy('createdAt', 'desc'));
+        const unsubscribeSessions = onSnapshot(sessionsQuery, (snapshot) => {
+            const sessionsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setSessions(sessionsData);
+        });
+
+        // Fetch user's bookings
+        const bookingsQuery = query(collection(db, 'bookings'), where('userId', '==', user.uid));
+        const unsubscribeBookings = onSnapshot(bookingsQuery, (snapshot) => {
+            const bookingsData = snapshot.docs.map(doc => doc.data().sessionId);
+            setBookings(bookingsData);
+            setLoading(false);
+        });
+
+        return () => {
+            unsubscribeSessions();
+            unsubscribeBookings();
+        };
     }, []);
 
     const handleJoinSession = (link: string | null) => {
@@ -59,7 +78,7 @@ const Dashboard = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                     >
-                        <h1 className="text-4xl font-display font-bold mb-2">Welcome Back, <span className="text-indigo-500">Alex</span></h1>
+                        <h1 className="text-4xl font-display font-bold mb-2">Welcome Back, <span className="text-indigo-500">{auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Peer'}</span></h1>
                         <p className="text-zinc-400 font-medium max-w-lg">
                             Your concept synchronization is optimal today. 
                             <span className="block text-zinc-500 italic text-sm mt-1">"Clarity over complexity." — Professional Sync Protocol active.</span>
@@ -67,12 +86,16 @@ const Dashboard = () => {
                     </motion.div>
 
                     <div className="flex gap-3">
-                        <GlowButton variant="glass" size="sm" className="gap-2">
-                            <Activity size={16} /> Analytics
-                        </GlowButton>
-                        <GlowButton variant="purple" size="sm" className="gap-2">
-                            <Zap size={16} /> New Sync
-                        </GlowButton>
+                        <Link to="/teach">
+                            <GlowButton variant="glass" size="sm" className="gap-2 bg-indigo-500/5 border-indigo-500/20 text-indigo-400">
+                                <Zap size={16} /> Become a Guide
+                            </GlowButton>
+                        </Link>
+                        <Link to="/explore">
+                            <GlowButton variant="purple" size="sm" className="gap-2">
+                                <Activity size={16} /> New Sync
+                            </GlowButton>
+                        </Link>
                     </div>
                 </div>
 
@@ -108,47 +131,56 @@ const Dashboard = () => {
                         <div className="space-y-3">
                             {loading ? (
                                 <div className="text-zinc-500 italic p-6">Authenticating secure protocols...</div>
-                            ) : sessions.map((session, i) => (
-                                <GlassCard key={session.id} delay={0.2 + i * 0.05} className={cn("p-5 group transition-all", session.isLocked ? "bg-zinc-900/30 opacity-70" : "bg-zinc-900 border-indigo-500/20 shadow-sm")}>
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                        <div className="flex items-center gap-5">
-                                            <div className={cn("w-12 h-12 bg-zinc-800 rounded-lg flex items-center justify-center border border-zinc-700", session.isLocked ? "text-zinc-600" : "text-indigo-400")}>
-                                                <Calendar size={20} />
+                            ) : sessions.length === 0 ? (
+                                <div className="text-zinc-600 text-[10px] uppercase font-bold text-center py-12 border border-dashed border-zinc-800 rounded-none italic tracking-widest">
+                                    No active protocols found in the ledger
+                                </div>
+                            ) : sessions.map((session, i) => {
+                                const isBooked = bookings.includes(session.id);
+                                const isCreator = session.creatorId === auth.currentUser?.uid;
+                                
+                                return (
+                                    <GlassCard key={session.id} delay={0.2 + i * 0.05} className={cn("p-5 group transition-all", (!isBooked && !isCreator) ? "bg-zinc-900/30 opacity-70" : "bg-zinc-900 border-indigo-500/20 shadow-sm")}>
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                            <div className="flex items-center gap-5">
+                                                <div className={cn("w-12 h-12 bg-zinc-800 rounded-lg flex items-center justify-center border border-zinc-700", (!isBooked && !isCreator) ? "text-zinc-600" : "text-indigo-400")}>
+                                                    <Calendar size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] text-indigo-500 font-bold uppercase tracking-widest mb-0.5">
+                                                        {isCreator ? '💎 Your Protocol' : isBooked ? '🔗 Unlocked' : '🔒 Private'}
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{session.title}</h4>
+                                                    <div className="text-xs text-zinc-500 flex items-center gap-2 mt-1 font-medium">
+                                                        <Clock size={12} /> Guide: {session.creatorName}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="text-[10px] text-indigo-500 font-bold uppercase tracking-widest mb-0.5">
-                                                    {session.isLocked ? '🔒 Private' : '🔗 Unlocked'}
+                                            <div className="flex items-center gap-6">
+                                                <div className="text-right hidden md:block">
+                                                    <div className="text-[10px] text-zinc-600 uppercase font-bold mb-0.5">Transmission</div>
+                                                    <div className={cn("text-xs font-bold font-mono", (!isBooked && !isCreator) ? "text-zinc-700" : "text-indigo-500")}>
+                                                        {(!isBooked && !isCreator) ? 'STALE' : 'OPTIMAL'}
+                                                    </div>
                                                 </div>
-                                                <h4 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{session.title}</h4>
-                                                <div className="text-xs text-zinc-500 flex items-center gap-2 mt-1 font-medium">
-                                                    <Clock size={12} /> Sync Guide: {session.guide}
-                                                </div>
+                                                <GlowButton 
+                                                    onClick={() => (isBooked || isCreator) ? handleJoinSession(session.meetLink) : window.location.href = `/session/${session.id}`}
+                                                    variant={(isBooked || isCreator) ? "purple" : "glass"} 
+                                                    size="sm"
+                                                    className={cn(!isBooked && !isCreator && "opacity-80")}
+                                                >
+                                                    {(isBooked || isCreator) ? 'Join Sync' : 'Initialize'}
+                                                </GlowButton>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-6">
-                                            <div className="text-right hidden md:block">
-                                                <div className="text-[10px] text-zinc-600 uppercase font-bold mb-0.5">Reference State</div>
-                                                <div className={cn("text-xs font-bold font-mono", session.isLocked ? "text-zinc-700" : "text-indigo-500")}>
-                                                    {session.isLocked ? 'STALE' : 'OPTIMAL'}
-                                                </div>
+                                        {(!isBooked && !isCreator) && (
+                                            <div className="mt-4 pt-4 border-t border-zinc-800 text-[9px] text-zinc-600 uppercase tracking-[0.3em] font-bold">
+                                                Purchase access to synchronize following secure protocol
                                             </div>
-                                            <GlowButton 
-                                                onClick={() => !session.isLocked && handleJoinSession(session.meetLink)}
-                                                variant={session.isLocked ? "glass" : "purple"} 
-                                                size="sm"
-                                                className={cn(session.isLocked && "opacity-50 grayscale cursor-not-allowed")}
-                                            >
-                                                {session.isLocked ? 'Locked' : 'Join Sync Now'}
-                                            </GlowButton>
-                                        </div>
-                                    </div>
-                                    {session.isLocked && (
-                                        <div className="mt-4 pt-4 border-t border-zinc-800 text-[9px] text-zinc-600 uppercase tracking-[0.3em] font-bold">
-                                            Initialize booking to synchronize secure meeting protocols
-                                        </div>
-                                    )}
-                                </GlassCard>
-                            ))}
+                                        )}
+                                    </GlassCard>
+                                );
+                            })}
                         </div>
                     </div>
 

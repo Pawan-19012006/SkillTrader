@@ -7,6 +7,7 @@ import SessionDetails from './pages/SessionDetails.tsx';
 import Profile from './pages/Profile.tsx';
 import Wallet from './pages/Wallet.tsx';
 import Auth from './pages/Auth.tsx';
+import Teach from './pages/Teach.tsx';
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/teach" element={<Teach />} />
             </Routes>
         </div>
     );

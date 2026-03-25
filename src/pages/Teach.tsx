@@ -1,0 +1,254 @@
+import { useState } from 'react';
+import { Clock, DollarSign, Link as LinkIcon, Check, AlertCircle, Shield } from 'lucide-react';
+import Navbar from '../components/ui/Navbar';
+import GlassCard from '../components/ui/GlassCard';
+import GlowButton from '../components/ui/GlowButton';
+import AnimatedBackground from '../components/ui/AnimatedBackground';
+import { cn } from '../utils/cn';
+import { db, auth } from '../lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+const Teach = () => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        objectives: '',
+        duration: '30',
+        price: '50',
+        meetLink: '',
+        tags: ''
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        
+        // Validation logic
+        const priceNum = parseInt(formData.price);
+        if (priceNum < 1 || priceNum > 100) {
+            alert('Price must be between 1 and 100 credits.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                alert('You must be logged in to broadcast a protocol.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            await addDoc(collection(db, 'sessions'), {
+                creatorId: user.uid,
+                creatorName: user.displayName || user.email?.split('@')[0] || 'Anonymous Guide',
+                title: formData.title,
+                description: formData.description,
+                objectives: formData.objectives.split(';').map((s: string) => s.trim()),
+                duration: parseInt(formData.duration),
+                price: priceNum,
+                meetLink: formData.meetLink,
+                tags: formData.tags.split(',').map((s: string) => s.trim()),
+                createdAt: serverTimestamp(),
+                isActive: true
+            });
+
+            setSuccess(true);
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
+        } catch (error) {
+            console.error('Error creating session:', error);
+            alert('Failed to broadcast protocol. Check your connection.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (success) {
+        return (
+            <div className="relative min-h-screen flex items-center justify-center p-6">
+                <AnimatedBackground />
+                <Navbar />
+                <GlassCard className="max-w-md w-full p-12 text-center bg-zinc-900 border-zinc-800 rounded-none border-t-4 border-t-indigo-600">
+                    <div className="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-indigo-500/30">
+                        <Check className="text-indigo-500" size={40} />
+                    </div>
+                    <h2 className="text-3xl font-display font-bold mb-4 text-white uppercase italic tracking-tighter">Protocol Published</h2>
+                    <p className="text-zinc-500 mb-10 font-medium uppercase tracking-tight">Your synchronization session is now live in the SkillTrader ledger.</p>
+                    <GlowButton onClick={() => setSuccess(false)} variant="purple" fullWidth className="rounded-none font-bold uppercase tracking-widest text-[10px] py-4">
+                        Initialize New Protocol
+                    </GlowButton>
+                </GlassCard>
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative min-h-screen pt-32 pb-20 px-6">
+            <AnimatedBackground />
+            <Navbar />
+
+            <div className="max-w-4xl mx-auto">
+                <div className="mb-12">
+                    <span className="text-indigo-500 font-bold uppercase tracking-[0.3em] text-[10px] mb-4 block">Instructional Interface</span>
+                    <h1 className="text-5xl md:text-6xl font-display font-bold text-white uppercase italic tracking-tighter leading-none mb-6">
+                        Define Your <span className="text-indigo-600">Sync Protocol</span>
+                    </h1>
+                    <p className="text-zinc-500 max-w-2xl font-medium uppercase tracking-tight">
+                        Broadcast your mental models to the network. Set your parameters, define your value, and catalyze collective clarity.
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2 space-y-8">
+                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none" hover={false}>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Protocol Title</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="e.g., Recursion Fundamentals Synchronization"
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-bold uppercase tracking-tight"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Transmission Summary</label>
+                                    <textarea
+                                        required
+                                        rows={4}
+                                        placeholder="Briefly describe the mental model you will be transmitting..."
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium uppercase tracking-tight text-sm"
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Learning Objectives (Semicolon separated)</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="e.g., Trace recursion stacks; Identify base cases"
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium uppercase tracking-tight text-sm"
+                                        value={formData.objectives}
+                                        onChange={(e) => setFormData({...formData, objectives: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        </GlassCard>
+
+                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none" hover={false}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Secure Meeting Link</label>
+                                    <div className="relative">
+                                        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" size={16} />
+                                        <input
+                                            required
+                                            type="url"
+                                            placeholder="https://meet.google.com/..."
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 pl-12 pr-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium text-sm"
+                                            value={formData.meetLink}
+                                            onChange={(e) => setFormData({...formData, meetLink: e.target.value})}
+                                        />
+                                    </div>
+                                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
+                                        <Shield size={10} /> Link remains encrypted until booking verification
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Categorization Tags</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g., Computer Science, Algorithms"
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium uppercase tracking-tight text-sm"
+                                        value={formData.tags}
+                                        onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        </GlassCard>
+                    </div>
+
+                    <div className="space-y-8">
+                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none border-l-4 border-l-indigo-600" hover={false}>
+                            <div className="space-y-8">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 flex items-center gap-2">
+                                        <Clock size={14} className="text-indigo-500" /> Duration (Minutes)
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {['15', '30', '45', '60'].map((time) => (
+                                            <button
+                                                key={time}
+                                                type="button"
+                                                onClick={() => setFormData({...formData, duration: time})}
+                                                className={cn(
+                                                    "py-3 font-bold uppercase tracking-widest text-[10px] border transition-all",
+                                                    formData.duration === time 
+                                                        ? "bg-indigo-600 border-indigo-500 text-white" 
+                                                        : "bg-zinc-950 border-zinc-800 text-zinc-600 hover:border-zinc-700"
+                                                )}
+                                            >
+                                                {time}m
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 flex items-center gap-2">
+                                        <DollarSign size={14} className="text-indigo-500" /> Protocol Value (1-100)
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="100"
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-6 px-4 text-4xl text-white font-display font-bold text-center focus:outline-none focus:border-indigo-500/50 transition-all"
+                                            value={formData.price}
+                                            onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                        />
+                                        <span className="absolute right-4 bottom-4 text-[9px] font-bold uppercase tracking-widest text-zinc-600">Credits</span>
+                                    </div>
+                                    <div className="p-3 bg-zinc-950 border border-zinc-800 flex items-start gap-3">
+                                        <AlertCircle className="text-indigo-500 shrink-0" size={14} />
+                                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed">
+                                            Strict regulation: Sync sessions cannot exceed 100 base units.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <GlowButton 
+                                    type="submit" 
+                                    variant="purple" 
+                                    fullWidth 
+                                    className="rounded-none py-6 font-bold uppercase tracking-[0.2em] text-[11px]"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? 'Enciphering Protocol...' : 'Broadcast to Ledger'}
+                                </GlowButton>
+                            </div>
+                        </GlassCard>
+
+                        <div className="p-6 bg-indigo-600/5 border border-indigo-500/10 text-center">
+                            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
+                                By broadcasting, you agree to adhere to the high-frequency synchronization standards of the SkillTrader Protocol.
+                            </p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default Teach;
