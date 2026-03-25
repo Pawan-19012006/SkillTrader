@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Rocket, Search, LogOut, User as UserIcon, Zap, MessageSquare, BookOpen } from 'lucide-react';
+import { Menu, X, Rocket, Search, LogOut, User as UserIcon, Zap, MessageSquare, BookOpen, Mail } from 'lucide-react';
 import GlowButton from './GlowButton';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +21,7 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Explore Protocols', path: '/explore', icon: <Search size={18} /> },
         { name: 'Community Hub', path: '/community', icon: <MessageSquare size={18} /> },
+        { name: 'Direct Messages', path: '/messages', icon: <Mail size={18} /> },
         { name: 'Sessions', path: '/sessions', icon: <BookOpen size={18} /> },
         { name: 'Teach Mode', path: '/teach', icon: <Rocket size={18} /> },
     ];

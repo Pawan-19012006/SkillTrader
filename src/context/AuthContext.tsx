@@ -11,6 +11,7 @@ import { doc, setDoc, getDoc, serverTimestamp, onSnapshot } from 'firebase/fires
 interface AuthContextType {
     user: User | null;
     credits: number;
+    following: string[];
     loading: boolean;
     loginWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [credits, setCredits] = useState<number>(0);
+    const [following, setFollowing] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -41,19 +43,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         email: currentUser.email,
                         photoURL: currentUser.photoURL,
                         createdAt: serverTimestamp(),
-                        credits: 100
+                        credits: 100,
+                        followers: [],
+                        following: []
                     });
                 }
 
-                // Set up real-time listener for credits
+                // Set up real-time listener for user data (credits, following)
                 unsubscribeCredits = onSnapshot(userRef, (snapshot) => {
                     if (snapshot.exists()) {
                         setCredits(snapshot.data().credits || 0);
-                        console.log("Real-time credits update:", snapshot.data().credits);
+                        setFollowing(snapshot.data().following || []);
+                        console.log("Real-time profile sync:", snapshot.data());
                     }
                 });
             } else {
                 setCredits(0);
+                setFollowing([]);
                 if (unsubscribeCredits) unsubscribeCredits();
             }
             
@@ -85,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, credits, loading, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, credits, following, loading, loginWithGoogle, logout }}>
             {children}
         </AuthContext.Provider>
     );

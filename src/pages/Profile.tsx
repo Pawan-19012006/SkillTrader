@@ -11,9 +11,10 @@ import {
     Clock,
     User as UserIcon,
     Mail,
-    Save
+    Save,
+    MessageSquare
 } from 'lucide-react';
-import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, limit, getDoc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
@@ -21,70 +22,107 @@ import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
+import { useParams, useNavigate } from 'react-router-dom';
+import FollowButton from '../components/social/FollowButton';
 
 const Profile = () => {
-    const { user, credits } = useAuth();
+    const { uid: paramUid } = useParams();
+    const navigate = useNavigate();
+    const { user: currentUser } = useAuth();
+    
+    const isOwnProfile = !paramUid || paramUid === currentUser?.uid;
+    const targetUid = isOwnProfile ? currentUser?.uid : paramUid;
+
+    const [profileUser, setProfileUser] = useState<any>(null);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isLearnedFrom, setIsLearnedFrom] = useState(false);
+    
+    // Stats
+    const [stats, setStats] = useState({
+        followers: 0,
+        following: 0,
+        credits: 0
+    });
+
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editData, setEditData] = useState({
-        displayName: user?.displayName || '',
-        photoURL: user?.photoURL || ''
+        displayName: '',
+        photoURL: ''
     });
 
     useEffect(() => {
-        if (!user) return;
+        if (!targetUid) return;
 
-        let activeUnsubscribe: (() => void) | null = null;
-
-        const fetchTransactions = (useOrderBy = true) => {
-            const baseQuery = collection(db, 'transactions');
-            const constraints: any[] = [where('userId', '==', user.uid)];
-            
-            if (useOrderBy) {
-                constraints.push(orderBy('createdAt', 'desc'));
-            }
-            constraints.push(limit(20));
-
-            const q = query(baseQuery, ...constraints);
-
-            const unsub = onSnapshot(q, (snapshot) => {
-                let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                if (!useOrderBy) {
-                    data.sort((a: any, b: any) => {
-                        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-                        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-                        return timeB - timeA;
+        // Fetch User Data
+        const userRef = doc(db, 'users', targetUid);
+        const unsubUser = onSnapshot(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                setProfileUser(data);
+                setStats({
+                    followers: data.followers?.length || 0,
+                    following: data.following?.length || 0,
+                    credits: data.credits || 0
+                });
+                if (isOwnProfile) {
+                    setEditData({
+                        displayName: data.displayName || '',
+                        photoURL: data.photoURL || ''
                     });
                 }
+            }
+        });
 
-                setTransactions(data);
-                setLoading(false);
-            }, (error) => {
-                console.error("Transaction subscription error:", error);
-                if ((error.code === 'failed-precondition' || error.message.includes('index')) && useOrderBy) {
-                    console.warn("Retrying ledger fetch with client-side sorting...");
-                    if (activeUnsubscribe) activeUnsubscribe();
-                    activeUnsubscribe = fetchTransactions(false);
-                } else {
+        // Check if shared booking exists (for academic badge & messaging)
+        if (!isOwnProfile && currentUser) {
+            const checkAcademicLink = async () => {
+                const bookingsQuery = query(
+                    collection(db, 'bookings'),
+                    where('buyerId', 'in', [currentUser.uid, targetUid]),
+                    where('creatorId', 'in', [currentUser.uid, targetUid])
+                );
+                const snaps = await getDocs(bookingsQuery);
+                setIsLearnedFrom(snaps.size > 0);
+            };
+            checkAcademicLink();
+        }
+
+        // Fetch Transactions (Only if own profile for privacy)
+        let unsubTx: (() => void) | null = null;
+        if (isOwnProfile) {
+            const fetchTransactions = (useOrderBy = true) => {
+                const constraints: any[] = [where('userId', '==', targetUid)];
+                if (useOrderBy) constraints.push(orderBy('createdAt', 'desc'));
+                constraints.push(limit(20));
+
+                const q = query(collection(db, 'transactions'), ...constraints);
+                return onSnapshot(q, (snapshot) => {
+                    let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (!useOrderBy) {
+                        data.sort((a: any, b: any) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+                    }
+                    setTransactions(data);
                     setLoading(false);
-                }
-            });
+                }, () => {
+                    if (useOrderBy) fetchTransactions(false);
+                });
+            };
+            unsubTx = fetchTransactions(true);
+        } else {
+            setLoading(false);
+        }
 
-            return unsub;
-        };
-
-        activeUnsubscribe = fetchTransactions(true);
         return () => {
-            if (activeUnsubscribe) activeUnsubscribe();
+            unsubUser();
+            if (unsubTx) unsubTx();
         };
-    }, [user]);
+    }, [targetUid, currentUser, isOwnProfile]);
 
     const handleUpdateProfile = async () => {
-        if (!user) return;
+        if (!currentUser) return;
         try {
-            const userRef = doc(db, 'users', user.uid);
+            const userRef = doc(db, 'users', currentUser.uid);
             await updateDoc(userRef, {
                 displayName: editData.displayName,
                 photoURL: editData.photoURL
@@ -94,6 +132,23 @@ const Profile = () => {
             console.error("Error updating profile:", error);
             alert("Failed to update identity protocols.");
         }
+    };
+
+    const handleMessage = async () => {
+        if (!currentUser || !targetUid) return;
+        
+        const chatId = [currentUser.uid, targetUid].sort().join('_');
+        const chatRef = doc(db, 'chats', chatId);
+        const chatSnap = await getDoc(chatRef);
+
+        if (!chatSnap.exists()) {
+            await setDoc(chatRef, {
+                participants: [currentUser.uid, targetUid],
+                updatedAt: serverTimestamp(),
+                lastMessage: 'Synchronization context established.'
+            });
+        }
+        navigate(`/messages?chatId=${chatId}`);
     };
 
     return (
@@ -112,7 +167,7 @@ const Profile = () => {
                                 <div className="relative group">
                                     <div className="w-32 h-32 rounded-none bg-zinc-950 border-2 border-zinc-800 p-1 shadow-inner overflow-hidden">
                                         <img 
-                                            src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.uid}`} 
+                                            src={profileUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${targetUid}`} 
                                             alt="Avatar" 
                                             className="w-full h-full object-cover grayscale opacity-80" 
                                         />
@@ -127,17 +182,53 @@ const Profile = () => {
 
                                 <div className="space-y-2">
                                     <h1 className="text-3xl font-display font-bold text-white uppercase tracking-tighter italic">
-                                        {user?.displayName || user?.email?.split('@')[0]}
+                                        {profileUser?.displayName || profileUser?.email?.split('@')[0]}
                                     </h1>
-                                    <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-2">
-                                        <Shield size={12} className="text-indigo-500" /> Verified Sync Agent
-                                    </p>
+                                    <div className="flex flex-col items-center gap-3">
+                                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+                                            <Shield size={12} className="text-indigo-500" /> Verified Sync Agent
+                                        </p>
+                                        
+                                        {isLearnedFrom && (
+                                            <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-[0.2em] animate-pulse">
+                                                Direct Academic Connection
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+
+                                <div className="flex items-center gap-8 py-2">
+                                    <div className="text-center">
+                                        <div className="text-xl font-display font-bold text-white">{stats.followers}</div>
+                                        <div className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Followers</div>
+                                    </div>
+                                    <div className="w-[1px] h-8 bg-zinc-900" />
+                                    <div className="text-center">
+                                        <div className="text-xl font-display font-bold text-white">{stats.following}</div>
+                                        <div className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Following</div>
+                                    </div>
+                                </div>
+
+                                {!isOwnProfile && (
+                                    <div className="w-full flex gap-3">
+                                        <FollowButton targetUserId={targetUid!} className="flex-grow py-4" size="md" />
+                                        <GlowButton 
+                                            onClick={handleMessage}
+                                            disabled={!isLearnedFrom}
+                                            variant="glass" 
+                                            className="flex-grow py-4 uppercase text-[10px] font-bold tracking-widest gap-2"
+                                            title={!isLearnedFrom ? "Establish academic sync first to unlock private messaging." : "Initialize 1:1 synchronization."}
+                                        >
+                                            <MessageSquare size={14} className={cn(!isLearnedFrom && "opacity-20")} />
+                                            <span className={cn(!isLearnedFrom && "opacity-20")}>Message</span>
+                                        </GlowButton>
+                                    </div>
+                                )}
 
                                 <div className="w-full pt-8 space-y-4 border-t border-zinc-900">
                                     <div className="flex items-center gap-4 text-zinc-500">
                                         <Mail size={14} className="text-zinc-700" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">{user?.email}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">{profileUser?.email}</span>
                                     </div>
                                     <div className="flex items-center gap-4 text-zinc-500">
                                         <Clock size={14} className="text-zinc-700" />
@@ -153,12 +244,14 @@ const Profile = () => {
                                 <Zap size={14} className="text-indigo-500" /> Operational Credits
                             </h4>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-6xl font-display font-bold text-white tracking-tighter">{credits}</span>
+                                <span className="text-6xl font-display font-bold text-white tracking-tighter">{stats.credits}</span>
                                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Unit CR</span>
                             </div>
-                            <GlowButton variant="glass" fullWidth size="lg" className="mt-8 rounded-none text-[10px] font-bold uppercase tracking-widest">
-                                Expand Ledger
-                            </GlowButton>
+                            {isOwnProfile && (
+                                <GlowButton variant="glass" fullWidth size="lg" className="mt-8 rounded-none text-[10px] font-bold uppercase tracking-widest">
+                                    Expand Ledger
+                                </GlowButton>
+                            )}
                         </GlassCard>
 
                         <GlassCard className="p-8 bg-zinc-900 border-zinc-800" hover={false}>

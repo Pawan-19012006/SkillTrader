@@ -18,6 +18,7 @@ import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
 import PostRequestModal from '../components/requests/PostRequestModal';
+import FollowButton from '../components/social/FollowButton';
 
 const Community = () => {
     const { user } = useAuth();
@@ -222,6 +223,7 @@ const Community = () => {
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-[11px] font-bold text-white uppercase tracking-tight italic">{msg.creatorName}</span>
+                                                                <FollowButton targetUserId={msg.createdBy} size="sm" className="h-6 px-2 text-[8px]" />
                                                                 <span className="w-1 h-1 rounded-full bg-zinc-800" />
                                                                 <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{formatTime(msg.createdAt)}</span>
                                                             </div>
