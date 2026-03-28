@@ -4,7 +4,10 @@ import {
     Send, 
     MessageSquare, 
     Search as SearchIcon,
-    ArrowLeft
+    ArrowLeft,
+    CheckCheck,
+    Paperclip,
+    Smile
 } from 'lucide-react';
 import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -36,10 +39,10 @@ const Messages = () => {
             return;
         }
 
+        // Using local sorting to avoid requiring a composite index
         const chatsQuery = query(
             collection(db, 'chats'),
-            where('participants', 'array-contains', user.uid),
-            orderBy('updatedAt', 'desc')
+            where('participants', 'array-contains', user.uid)
         );
 
         const unsubscribe = onSnapshot(chatsQuery, (snapshot) => {
@@ -69,6 +72,12 @@ const Messages = () => {
                             }
                         };
                     }));
+                    // Sort locally
+                    chatsData.sort((a: any, b: any) => {
+                        const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : 0;
+                        const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : 0;
+                        return timeB - timeA;
+                    });
                     setChats(chatsData);
                 } catch (error) {
                     console.error("Chat loading error:", error);
@@ -213,27 +222,46 @@ const Messages = () => {
                                     </p>
                                 </div>
                             ) : (
-                                chats.map((chat) => (
-                                    <button
-                                        key={chat.id}
-                                        onClick={() => navigate(`/messages?chatId=${chat.id}`)}
-                                        className={cn(
-                                            "w-full flex items-center gap-4 p-4 transition-all hover:bg-zinc-900/50 relative group border-b border-zinc-900/50",
-                                            activeChatId === chat.id ? "bg-indigo-600/5 border-l-2 border-l-indigo-600" : "border-l-2 border-l-transparent"
-                                        )}
-                                    >
-                                        <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 shrink-0 overflow-hidden">
-                                            <img src={chat.otherUser.avatar} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all opacity-80" alt="" />
-                                        </div>
-                                        <div className="flex-grow text-left overflow-hidden">
-                                            <div className="flex items-center justify-between mb-0.5">
-                                                <span className="text-[10px] font-bold text-white uppercase truncate tracking-tight">{chat.otherUser.name}</span>
-                                                <span className="text-[8px] text-zinc-600 font-bold uppercase">{chat.updatedAt?.toDate ? new Date(chat.updatedAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                chats.map((chat) => {
+                                    const isUnread = false; // Placeholder for unread status
+                                    return (
+                                        <button
+                                            key={chat.id}
+                                            onClick={() => navigate(`/messages?chatId=${chat.id}`)}
+                                            className={cn(
+                                                "w-full flex items-center gap-4 p-4 transition-all hover:bg-zinc-900/80 relative group border-b border-zinc-900/50",
+                                                activeChatId === chat.id ? "bg-zinc-900" : ""
+                                            )}
+                                        >
+                                            <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden relative">
+                                                <img src={chat.otherUser.avatar} className="w-full h-full object-cover" alt="" />
+                                                {/* Online indicator could go here */}
                                             </div>
-                                            <p className="text-[9px] text-zinc-600 truncate font-medium uppercase tracking-tight">{chat.lastMessage || '...'}</p>
-                                        </div>
-                                    </button>
-                                ))
+                                            <div className="flex-grow text-left overflow-hidden flex flex-col justify-center">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-sm font-bold text-white tracking-tight truncate">{chat.otherUser.name}</span>
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold uppercase",
+                                                        isUnread ? "text-indigo-400" : "text-zinc-600"
+                                                    )}>
+                                                        {chat.updatedAt?.toDate ? new Date(chat.updatedAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <p className={cn(
+                                                        "text-xs truncate font-medium",
+                                                        isUnread ? "text-white" : "text-zinc-500"
+                                                    )}>
+                                                        {chat.lastMessage || '...'}
+                                                    </p>
+                                                    {isUnread && (
+                                                        <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })
                             )}
                         </div>
                     </div>
@@ -252,14 +280,14 @@ const Messages = () => {
                                     <button onClick={() => navigate('/messages')} className="md:hidden text-zinc-500 hover:text-white">
                                         <ArrowLeft size={18} />
                                     </button>
-                                    <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0">
-                                        <img src={activeChatUser.avatar} className="w-full h-full object-cover grayscale opacity-80" alt="" />
+                                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+                                        <img src={activeChatUser.avatar} className="w-full h-full object-cover" alt="" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[11px] font-bold text-white uppercase tracking-widest">{activeChatUser.name}</span>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Active Now</span>
+                                        <span className="text-sm font-bold text-white tracking-tight">{activeChatUser.name}</span>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Online</span>
                                         </div>
                                     </div>
                                 </div>
@@ -285,20 +313,23 @@ const Messages = () => {
                                             )}
                                         >
                                             <div className={cn(
-                                                "max-w-[80%] flex flex-col gap-1.5",
+                                                "max-w-[80%] flex flex-col gap-1",
                                                 isMe ? "items-end" : "items-start"
                                             )}>
                                                 <div className={cn(
-                                                    "px-5 py-3 text-xs font-medium relative",
+                                                    "px-4 py-2.5 text-sm font-medium relative rounded-2xl shadow-sm inline-block break-words max-w-full",
                                                     isMe 
-                                                        ? "bg-indigo-600 text-white border-r-2 border-r-indigo-400" 
-                                                        : "bg-zinc-900 text-zinc-300 border-l-2 border-l-zinc-700"
+                                                        ? "bg-indigo-600 text-white rounded-br-sm shadow-indigo-500/10" 
+                                                        : "bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-bl-sm"
                                                 )}>
-                                                    {msg.text}
+                                                    <span className="whitespace-pre-wrap">{msg.text}</span>
+                                                    <div className="flex items-center justify-end gap-1 mt-1 opacity-70">
+                                                        <span className="text-[9px] font-bold tracking-widest">
+                                                            {msg.createdAt?.toDate ? new Date(msg.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
+                                                        </span>
+                                                        {isMe && <CheckCheck size={12} />}
+                                                    </div>
                                                 </div>
-                                                <span className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest px-1">
-                                                    {msg.createdAt?.toDate ? new Date(msg.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
-                                                </span>
                                             </div>
                                         </motion.div>
                                     );
@@ -307,22 +338,36 @@ const Messages = () => {
                             </div>
 
                             {/* Chat Input */}
-                            <footer className="p-4 border-t border-zinc-900 bg-zinc-950 relative z-10">
-                                <form onSubmit={handleSendMessage} className="flex gap-3">
-                                    <input 
-                                        type="text" 
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Type a message..." 
-                                        className="flex-grow bg-zinc-900 border border-zinc-800 rounded-none py-4 px-6 text-xs font-bold text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-600/50 tracking-tight"
-                                    />
+                            <footer className="p-4 bg-zinc-950 relative z-10">
+                                <form onSubmit={handleSendMessage} className="flex gap-3 items-end">
+                                    <div className="flex-grow bg-zinc-900 border border-zinc-800 rounded-3xl flex items-end p-1.5 transition-colors focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500/50">
+                                        <button type="button" className="p-2.5 text-zinc-500 hover:text-white transition-colors">
+                                            <Paperclip size={20} />
+                                        </button>
+                                        <textarea 
+                                            value={newMessage}
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleSendMessage(e as any);
+                                                }
+                                            }}
+                                            placeholder="Type a message..." 
+                                            className="flex-grow bg-transparent border-none py-2.5 px-2 text-sm font-medium text-white placeholder:text-zinc-500 focus:outline-none resize-none max-h-32 min-h-10 leading-relaxed overflow-y-auto no-scrollbar"
+                                            rows={1}
+                                        />
+                                        <button type="button" className="p-2.5 text-zinc-500 hover:text-white transition-colors">
+                                            <Smile size={20} />
+                                        </button>
+                                    </div>
                                     <GlowButton 
                                         type="submit"
                                         variant="purple" 
-                                        className="h-full px-8 rounded-none"
+                                        className="h-12 w-12 rounded-full p-0 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20"
                                         disabled={!newMessage.trim()}
                                     >
-                                        <Send size={16} className="text-white" />
+                                        <Send size={18} className="text-white ml-0.5" />
                                     </GlowButton>
                                 </form>
                             </footer>

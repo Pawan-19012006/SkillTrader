@@ -1,3 +1,4 @@
 node_modules
-firebase.ts
+.env
+.env.*
 .agent/
