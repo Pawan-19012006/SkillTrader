@@ -13,7 +13,6 @@ import {
     AlertCircle
 } from 'lucide-react';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import BookingConfirmModal from '../components/booking/BookingConfirmModal';
@@ -66,7 +65,7 @@ const SessionDetails = () => {
         await setDoc(doc(db, 'chats', chatId), {
             participants: [user.uid, session.creatorId],
             updatedAt: serverTimestamp(),
-            lastMessage: `Synchronization initialized regarding: ${session.title}`
+            lastMessage: `Hi, I have a question about: ${session.title}`
         });
         
         navigate(`/messages?chatId=${chatId}`);
@@ -151,14 +150,14 @@ const SessionDetails = () => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-6">
                         <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em]">Synchronizing local state with ledger...</p>
+                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em]">Loading lesson details...</p>
                     </div>
                 ) : !session ? (
                     <div className="text-center py-32">
-                        <h2 className="text-3xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">Protocol Terminated</h2>
-                        <p className="text-zinc-500 font-medium uppercase tracking-tight">The requested synchronization session no longer exists in the ledger.</p>
+                        <h2 className="text-3xl font-display font-bold text-white mb-4 uppercase tracking-tighter">Lesson not found</h2>
+                        <p className="text-zinc-500 font-medium uppercase tracking-tight">This lesson is no longer available.</p>
                         <Link to="/explore">
-                            <GlowButton variant="purple" className="mt-10 rounded-none font-bold uppercase tracking-widest text-[10px]">Return to Network</GlowButton>
+                            <GlowButton variant="purple" className="mt-10 rounded-none font-bold uppercase tracking-widest text-[10px]">Go Back</GlowButton>
                         </Link>
                     </div>
                 ) : (
@@ -177,15 +176,15 @@ const SessionDetails = () => {
                                         transition={{ delay: 0.1 }}
                                         className="flex items-center gap-4 mb-6"
                                     >
-                                        <span className="px-3 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-[0.2em]">
-                                            Protocol Sync <span className="text-zinc-600 ml-1">#{session.id.slice(0, 8)}</span>
+                                        <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-[0.2em]">
+                                            Lesson <span className="text-zinc-600 ml-1">#{session.id.slice(0, 8)}</span>
                                         </span>
                                         <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-bold uppercase tracking-widest">
-                                            <Star size={12} fill="currentColor" className="text-indigo-500" /> 4.9 <span className="text-zinc-600">Secure Rating</span>
+                                            < Star size={12} fill="currentColor" className="text-indigo-500" /> 4.9 <span className="text-zinc-600">Rating</span>
                                         </div>
                                     </motion.div>
 
-                                    <h1 className="text-5xl md:text-7xl font-display font-bold mb-8 leading-[0.9] tracking-tighter text-white uppercase italic uppercase">
+                                    <h1 className="text-5xl md:text-7xl font-display font-bold mb-8 leading-[0.9] tracking-tighter text-white uppercase">
                                         {session.title.split(' ').map((word: string, i: number) => i === 1 ? <><br /><span key={i} className="text-indigo-500">{word} </span></> : <span key={i}>{word} </span>)}
                                     </h1>
 
@@ -210,7 +209,7 @@ const SessionDetails = () => {
                                             </div>
                                             <div>
                                                 <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Learners Enrolled</div>
-                                                <div className="font-bold text-indigo-500 uppercase text-sm">{attendeeCount} Synthesizing</div>
+                                                <div className="font-bold text-indigo-500 uppercase text-sm">{attendeeCount} Joined</div>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -219,7 +218,7 @@ const SessionDetails = () => {
                                             </div>
                                             <div>
                                                 <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-0.5">Cost</div>
-                                                <div className="font-bold text-white uppercase text-sm">{session.price} CR</div>
+                                                <div className="font-bold text-white uppercase text-sm">{session.price} Credits</div>
                                             </div>
                                         </div>
                                     </div>
@@ -229,7 +228,7 @@ const SessionDetails = () => {
                                         <div className="flex items-center gap-3 p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-none">
                                             <AlertCircle className="text-indigo-500" size={18} />
                                             <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">
-                                                Ownership Protocol Detected: You cannot synchronize with your own broadcast.
+                                                This is your lesson. You cannot book your own class.
                                             </p>
                                         </div>
                                     )}
@@ -241,7 +240,7 @@ const SessionDetails = () => {
                                             className="px-10 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]"
                                             disabled={isOwner}
                                         >
-                                            {isOwner ? 'Locked: Your Session' : 'Access Sync Ledger'}
+                                            {isOwner ? 'Locked: Your Session' : 'Book Now'}
                                         </GlowButton>
                                         <GlowButton 
                                             onClick={handleMessage}
@@ -250,7 +249,7 @@ const SessionDetails = () => {
                                             className="px-8 flex items-center gap-2 rounded-none font-bold uppercase tracking-[0.2em] text-[10px]"
                                             disabled={isOwner}
                                         >
-                                            <MessageSquare size={18} /> Contact Guide
+                                            <MessageSquare size={18} /> Message Teacher
                                         </GlowButton>
                                     </div>
                                 </div>
@@ -261,25 +260,25 @@ const SessionDetails = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 className="lg:col-span-4"
                             >
-                                <GlassCard className="p-8 sticky top-32 bg-zinc-900 border-zinc-800 rounded-none border-l-4 border-l-indigo-600" hover={false}>
+                                <div className="p-8 sticky top-32 bg-zinc-900 border border-zinc-800 rounded-none border-l-4 border-l-indigo-600 shadow-2xl">
                                     <div className="text-center mb-8">
                                         <div className="w-24 h-24 mx-auto mb-6 bg-zinc-950 border border-zinc-800 p-1">
                                             <div className="w-full h-full bg-zinc-900 flex items-center justify-center overflow-hidden">
                                                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session.creatorName}`} alt={session.creatorName} className="w-full h-full object-cover" />
                                             </div>
                                         </div>
-                                        <h3 className="text-2xl font-display font-bold text-white tracking-tight uppercase italic">{session.creatorName}</h3>
-                                        <p className="text-indigo-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Authenticated Concept Guide</p>
+                                        <h3 className="text-2xl font-display font-bold text-white tracking-tight uppercase">{session.creatorName}</h3>
+                                        <p className="text-indigo-500 text-[10px] font-bold uppercase tracking-[0.15em] mt-2 border border-indigo-500/20 px-2 py-1">Verified Teacher</p>
                                     </div>
 
                                     <div className="space-y-6 text-sm">
                                         <p className="text-zinc-500 leading-relaxed text-center font-medium uppercase tracking-tight">
-                                            Authorized instructor for the {session.tags?.[0] || 'Technical'} Synchronization Protocol.
+                                            Teacher for this lesson.
                                         </p>
 
                                         <div className="pt-6 border-t border-zinc-800 space-y-4">
                                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                                                <span className="text-zinc-600">Total Syncs</span>
+                                                <span className="text-zinc-600">Total Lessons</span>
                                                 <span className="text-zinc-300">1,240</span>
                                             </div>
                                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
@@ -292,7 +291,7 @@ const SessionDetails = () => {
                                             Profile Analytics
                                         </GlowButton>
                                     </div>
-                                </GlassCard>
+                                </div>
                             </motion.div>
                         </section>
 
@@ -300,29 +299,29 @@ const SessionDetails = () => {
                         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                             <div className="lg:col-span-8 space-y-16">
                                 <div className="space-y-8">
-                                    <h2 className="text-2xl font-display font-bold flex items-center gap-4 text-white uppercase italic tracking-tighter">
+                                    <h2 className="text-2xl font-display font-bold flex items-center gap-4 text-white uppercase tracking-tighter">
                                         <Target className="text-indigo-500" size={24} /> Learning Objectives
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {(session.objectives || []).map((obj: string, i: number) => (
-                                            <GlassCard key={i} className="p-6 bg-zinc-900 border-zinc-800 rounded-none border-t border-t-indigo-500/20" hover={true}>
-                                                <h4 className="font-bold text-white mb-2 uppercase text-[10px] tracking-widest">Target Objective {i + 1}</h4>
-                                                <p className="text-sm text-zinc-500 font-medium leading-relaxed uppercase tracking-tight">{obj}</p>
-                                            </GlassCard>
+                                            <div key={i} className="p-6 bg-zinc-900 border border-zinc-800 rounded-none border-t border-t-indigo-500/20 shadow-xl">
+                                                <h4 className="font-bold text-white mb-2 uppercase text-[10px] tracking-widest">Objective {i + 1}</h4>
+                                                <p className="text-sm text-zinc-500 font-medium leading-relaxed tracking-tight">{obj}</p>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 <div className="space-y-8">
-                                    <h2 className="text-2xl font-display font-bold flex items-center gap-4 text-white uppercase italic tracking-tighter">
-                                        <BookOpen className="text-indigo-400" size={24} /> Protocol Requirements
+                                    <h2 className="text-2xl font-display font-bold flex items-center gap-4 text-white uppercase tracking-tighter">
+                                        <BookOpen className="text-indigo-400" size={24} /> Requirements
                                     </h2>
-                                    <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none border-b border-b-indigo-500/20" hover={false}>
+                                    <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-none border-b border-b-indigo-500/20 shadow-xl">
                                         <ul className="space-y-4">
                                             {[
                                                 "Basic understanding of core concepts",
                                                 "Active communication hardware ready",
-                                                "Commitment to the 15-minute high-frequency sync"
+                                                "Be on time for the 15-minute lesson"
                                             ].map((item, i) => (
                                                 <li key={i} className="flex items-start gap-4 text-zinc-400 font-medium uppercase text-[10px] tracking-widest font-bold">
                                                     <div className="w-1.5 h-1.5 rounded-none bg-indigo-500 mt-2 shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
@@ -330,7 +329,7 @@ const SessionDetails = () => {
                                                 </li>
                                             ))}
                                         </ul>
-                                    </GlassCard>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -365,9 +364,9 @@ const SessionDetails = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.2 }}
-                                        className="text-4xl font-display font-bold mb-2 uppercase italic tracking-tighter text-white"
+                                        className="text-4xl font-display font-bold mb-2 uppercase tracking-tighter text-white"
                                     >
-                                        Initialize Sync
+                                        Join Class
                                     </motion.h2>
                                     <motion.p 
                                         initial={{ opacity: 0, y: 10 }}
@@ -456,7 +455,7 @@ const SessionDetails = () => {
                                                     size="lg" 
                                                     className="py-6 rounded-none font-bold uppercase tracking-[0.25em] text-[10px]"
                                                 >
-                                                    Initialize Enrollment
+                                                    Confirm Booking
                                                 </GlowButton>
                                             )}
                                         </div>

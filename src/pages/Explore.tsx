@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Star, Zap, ArrowUpRight } from 'lucide-react';
+import { Search, Filter, Star, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
@@ -54,21 +53,10 @@ const Explore = () => {
 
             <main className="pt-28 px-6 max-w-7xl mx-auto">
                 <header className="mb-12">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20 shadow-sm">
-                            <Zap size={20} />
-                        </div>
-                        <motion.h1
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight"
-                        >
-                            Sync Marketplace
-                        </motion.h1>
+                    <div className="flex flex-col gap-2 mb-10">
+                        <h1 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight">Find Skills</h1>
+                        <p className="text-zinc-500 text-lg font-medium">Discover new skills and sessions to grow your wallet.</p>
                     </div>
-                    <p className="text-zinc-500 mb-10 max-w-2xl text-lg font-medium">
-                        Secure end-to-end concept synchronization. Connect with authorized guides for deep technical mastery.
-                    </p>
 
                     <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-grow">
@@ -123,7 +111,7 @@ const Explore = () => {
                                     transition={{ duration: 0.3, delay: idx * 0.05 }}
                                 >
                                     <Link to={`/session/${session.id}`}>
-                                        <GlassCard className="h-full flex flex-col p-0 overflow-hidden group bg-zinc-900 border-zinc-800 hover:border-indigo-500/50 shadow-sm" hover={true}>
+                                        <div className="h-full flex flex-col p-0 overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 shadow-sm transition-all shadow-xl">
                                             <div className="h-40 bg-zinc-950 flex items-center justify-center text-5xl relative overflow-hidden border-b border-zinc-800">
                                                 <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                                 
@@ -197,7 +185,7 @@ const Explore = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </GlassCard>
+                                        </div>
                                     </Link>
                                 </motion.div>
                             ))}

@@ -20,10 +20,10 @@ const Navbar = () => {
     }, []);
 
     const navLinks = [
-        { name: 'Explore Protocols', path: '/explore', icon: <Search size={18} /> },
-        { name: 'Community Hub', path: '/community', icon: <MessageSquare size={18} /> },
-        { name: 'Direct Messages', path: '/messages', icon: <Mail size={18} /> },
-        { name: 'Sessions', path: '/sessions', icon: <BookOpen size={18} /> },
+        { name: 'Explore', path: '/explore', icon: <Search size={18} /> },
+        { name: 'Community', path: '/community', icon: <MessageSquare size={18} /> },
+        { name: 'Chat', path: '/messages', icon: <Mail size={18} /> },
+        { name: 'My Lessons', path: '/sessions', icon: <BookOpen size={18} /> },
         { name: 'Teach Mode', path: '/teach', icon: <Rocket size={18} /> },
     ];
 
@@ -38,10 +38,10 @@ const Navbar = () => {
                         <Rocket className="text-white" size={20} />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-display font-bold text-white tracking-tighter uppercase italic">
+                        <span className="text-2xl font-display font-bold text-white tracking-tighter">
                             SkillTrader
                         </span>
-                        <span className="text-[8px] uppercase tracking-[0.4em] text-zinc-500 font-bold -mt-0.5 whitespace-nowrap">Clarity over complexity</span>
+                        <span className="text-[8px] tracking-[0.4em] text-zinc-500 font-bold -mt-0.5 whitespace-nowrap">Learn and teach together</span>
                     </div>
                 </Link>
 
@@ -64,7 +64,7 @@ const Navbar = () => {
                     {user && (
                         <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
                             <Zap size={12} className="text-indigo-500" />
-                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{credits} CR</span>
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{credits} Credits</span>
                         </div>
                     )}
                     
@@ -75,7 +75,7 @@ const Navbar = () => {
                                     <div className="text-[10px] text-white font-bold uppercase tracking-widest truncate max-w-[100px]">
                                         {user.displayName?.split(' ')[0]}
                                     </div>
-                                    <div className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Authorized</div>
+                                    <div className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Verified</div>
                                 </div>
                                 <div className="w-9 h-9 border border-zinc-800 p-0.5 bg-zinc-900 group-hover:border-indigo-500 transition-colors">
                                     {user.photoURL ? (
@@ -93,20 +93,24 @@ const Navbar = () => {
                                     navigate('/auth');
                                 }}
                                 className="p-2 text-zinc-600 hover:text-white transition-colors"
-                                title="De-authorize Session"
+                                title="Logout"
                             >
                                 <LogOut size={18} />
                             </button>
                         </div>
                     ) : (
-                        <>
+                        <div className="flex items-center gap-4">
                             <Link to="/auth">
-                                <GlowButton variant="glass" size="sm">Log In</GlowButton>
+                                <button className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
+                                    Login
+                                </button>
                             </Link>
-                            <Link to="/auth">
-                                <GlowButton variant="purple" size="sm">Get Started</GlowButton>
+                            <Link to="/auth?mode=signup">
+                                <GlowButton className="px-6 py-2 text-[10px] font-black uppercase tracking-widest">
+                                    Join Now
+                                </GlowButton>
                             </Link>
-                        </>
+                        </div>
                     )}
                 </div>
 
@@ -152,7 +156,7 @@ const Navbar = () => {
                                         </div>
                                         <div>
                                             <div className="font-bold text-white uppercase tracking-tight">{user.displayName}</div>
-                                            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Active Identity</div>
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Logged In</div>
                                         </div>
                                     </div>
                                     <GlowButton 
@@ -161,7 +165,7 @@ const Navbar = () => {
                                         fullWidth
                                         className="text-red-500 border-red-500/20"
                                     >
-                                        De-authorize Session
+                                        Logout
                                     </GlowButton>
                                 </div>
                             ) : (

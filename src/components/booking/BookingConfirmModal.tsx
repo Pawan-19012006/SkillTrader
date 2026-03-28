@@ -10,7 +10,6 @@ import {
     X,
     Sparkles
 } from 'lucide-react';
-import GlassCard from '../ui/GlassCard';
 import GlowButton from '../ui/GlowButton';
 import { useAnimateCounter } from '../../hooks/useAnimateCounter';
 import { fireConfetti } from '../ui/Confetti';
@@ -55,8 +54,8 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                 const userSnap = await transaction.get(userRef);
                 const sessionSnap = await transaction.get(sessionRef);
 
-                if (!userSnap.exists()) throw new Error("User record not found in ledger.");
-                if (!sessionSnap.exists()) throw new Error("Session protocol not found.");
+                if (!userSnap.exists()) throw new Error("User record not found.");
+                if (!sessionSnap.exists()) throw new Error("Lesson not found.");
 
                 const userData = userSnap.data();
                 const sessionData = sessionSnap.data();
@@ -77,7 +76,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                 // 3. Validation
                 const userCredits = userData.credits || 0;
                 if (userCredits < bookingDetails.cost) {
-                    throw new Error("Insufficient credits for protocol synchronization.");
+                    throw new Error("Insufficient credits for booking.");
                 }
 
                 // 4. WRITES: Buyer deduction
@@ -116,7 +115,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                     userId: user.uid,
                     type: 'debit',
                     amount: bookingDetails.cost,
-                    title: `Sync Acquisition: ${bookingDetails.title}`,
+                    title: `Lesson Booking: ${bookingDetails.title}`,
                     createdAt: serverTimestamp()
                 });
 
@@ -127,7 +126,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                         userId: creatorId,
                         type: 'credit',
                         amount: bookingDetails.cost,
-                        title: `Sync Transmission: ${bookingDetails.title}`,
+                        title: `Teaching Lesson: ${bookingDetails.title}`,
                         createdAt: serverTimestamp()
                     });
                 }
@@ -144,7 +143,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
 
         } catch (error: any) {
             console.error('Transaction failed:', error);
-            alert(error.message || 'Atomic transaction failed. Ledger integrity maintained.');
+            alert(error.message || 'Booking failed. Please try again.');
             setStep('confirm');
         }
     };
@@ -185,11 +184,9 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                             >
                                 <div>
                                     <h2 className="text-3xl font-display font-bold mb-2 text-white">Join Class</h2>
-                                    <p className="text-zinc-500 font-medium tracking-tight">Verify protocol parameters before execution.</p>
                                 </div>
-
                                 <div className="space-y-6">
-                                    <GlassCard className="p-6 bg-zinc-900 border-zinc-800 rounded-none border-l-2 border-indigo-500" hover={false}>
+                                    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-none border-l-2 border-indigo-500 shadow-xl">
                                         <div className="flex items-center gap-6">
                                             <div className="w-16 h-16 bg-zinc-950 rounded-none flex flex-col items-center justify-center border border-zinc-800">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{months[bookingDetails.date.getMonth()]}</span>
@@ -202,7 +199,7 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                                 </div>
                                             </div>
                                         </div>
-                                    </GlassCard>
+                                    </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-5 rounded-none bg-zinc-900 border border-zinc-800 shadow-sm transition-colors hover:border-zinc-700">
@@ -213,9 +210,9 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                         </div>
                                         <div className="p-5 rounded-none bg-zinc-900 border border-zinc-800 shadow-sm transition-colors hover:border-zinc-700">
                                             <div className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
-                                                <Wallet size={12} className="text-zinc-400" /> Protocol Cost
+                                                <Wallet size={12} className="text-zinc-400" /> Cost
                                             </div>
-                                            <div className="font-bold text-indigo-500 text-xs uppercase tracking-tight">{bookingDetails.cost} CR</div>
+                                            <div className="font-bold text-indigo-500 text-xs uppercase tracking-tight">{bookingDetails.cost} Credits</div>
                                         </div>
                                     </div>
                                 </div>
@@ -223,11 +220,11 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                 <div className="space-y-6 pt-12 border-t border-zinc-800">
                                     <div className="flex justify-between items-center px-2">
                                         <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Current Balance</span>
-                                        <span className="font-bold text-white">{credits} CR</span>
+                                        <span className="font-bold text-white">{credits} Credits</span>
                                     </div>
                                     <div className="flex justify-between items-center px-2">
-                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Execution Result</span>
-                                        <span className="font-bold text-indigo-500">{credits - bookingDetails.cost} CR</span>
+                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Remaining Balance</span>
+                                        <span className="font-bold text-indigo-500">{credits - bookingDetails.cost} Credits</span>
                                     </div>
                                     <GlowButton onClick={handleConfirm} variant="purple" fullWidth size="lg" className="py-5 group">
                                         Confirm Enrollment <Sparkles size={18} className="ml-2 group-hover:rotate-12 transition-transform" />
@@ -275,12 +272,12 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
 
                                 <div className="space-y-4 max-w-sm">
                                     <h2 className="text-4xl font-display font-bold text-white">
-                                        {step === 'deducting' ? 'Synchronizing...' : 'Protocol Active'}
+                                        {step === 'deducting' ? 'Booking...' : 'Lesson Booked!'}
                                     </h2>
                                     <p className="text-zinc-500 font-medium leading-relaxed px-4">
                                         {step === 'deducting'
-                                            ? 'Initializing secure peer-to-peer data channels. Please maintain connection.'
-                                            : 'Your concept sync has been established. Secure access protocols are now active.'}
+                                            ? 'Creating your lesson link... Please maintain connection.'
+                                            : 'Your lesson has been confirmed. You can now access the meeting link.'}
                                     </p>
                                 </div>
 
@@ -291,24 +288,24 @@ const BookingConfirmModal = ({ isOpen, onClose, bookingDetails }: BookingConfirm
                                         transition={{ delay: 0.5 }}
                                         className="w-full space-y-6 pt-12"
                                     >
-                                        <div className="p-6 text-left bg-zinc-900 border border-indigo-500/20 rounded-xl relative overflow-hidden">
+                                        <div className="p-6 text-left bg-zinc-900 border border-indigo-500/20 rounded-none relative overflow-hidden">
                                             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-400 mb-4">
-                                                <Video size={14} /> Encrypted Meeting Link
+                                                <Video size={14} /> Meeting Link
                                             </div>
-                                            <div className="bg-zinc-950 p-4 rounded-lg text-indigo-300 text-sm font-mono break-all border border-zinc-800 select-all">
+                                            <div className="bg-zinc-950 p-4 rounded-none text-indigo-300 text-sm font-mono break-all border border-zinc-800 select-all">
                                                 {meetLink || 'Processing...'}
                                             </div>
                                             <div className="mt-4 text-[9px] text-zinc-600 uppercase tracking-widest font-bold flex items-center gap-2">
-                                                <Shield size={10} /> Secure end-to-end channel
+                                                <Shield size={10} /> Verified Meeting Link
                                             </div>
                                         </div>
 
                                         <div className="flex gap-4">
                                             <GlowButton onClick={() => navigate(`/session/${bookingDetails.sessionId}`)} variant="glass" fullWidth size="lg" className="rounded-none text-[10px] uppercase font-bold tracking-widest">
-                                                Sync Details
+                                                Lesson Details
                                             </GlowButton>
                                             <GlowButton onClick={() => navigate('/sessions')} variant="purple" fullWidth size="lg" className="rounded-none text-[10px] uppercase font-bold tracking-widest">
-                                                View Sessions
+                                                View Lessons
                                             </GlowButton>
                                         </div>
                                     </motion.div>

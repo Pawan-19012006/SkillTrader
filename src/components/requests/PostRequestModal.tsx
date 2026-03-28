@@ -4,7 +4,6 @@ import { X, Send, Zap, Info, Tag } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import GlassCard from '../ui/GlassCard';
 import GlowButton from '../ui/GlowButton';
 
 interface PostRequestModalProps {
@@ -62,7 +61,7 @@ const PostRequestModal = ({ isOpen, onClose }: PostRequestModalProps) => {
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         className="w-full max-w-xl"
                     >
-                        <GlassCard className="p-1 w-full bg-zinc-950 border-zinc-800" hover={false}>
+                        <div className="p-1 w-full bg-zinc-950 border border-zinc-800 rounded-none shadow-2xl">
                             <form onSubmit={handleSubmit} className="p-8 space-y-8">
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
@@ -71,7 +70,7 @@ const PostRequestModal = ({ isOpen, onClose }: PostRequestModalProps) => {
                                         </div>
                                         <div>
                                             <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Post Request</h2>
-                                            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Initialize Knowledge Sync</p>
+                                            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Ask for help from the community</p>
                                         </div>
                                     </div>
                                     <button 
@@ -126,9 +125,9 @@ const PostRequestModal = ({ isOpen, onClose }: PostRequestModalProps) => {
                                         <div className="space-y-2">
                                             <div className="flex justify-between items-center">
                                                 <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                                    <Zap size={12} /> Budget (CR)
+                                                    <Zap size={12} /> Budget (Credits)
                                                 </label>
-                                                <span className="text-[10px] font-black text-indigo-500">{budget} CR</span>
+                                                <span className="text-[10px] font-black text-indigo-500">{budget} Credits</span>
                                             </div>
                                             <input 
                                                 type="range"
@@ -140,17 +139,17 @@ const PostRequestModal = ({ isOpen, onClose }: PostRequestModalProps) => {
                                                 className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                                             />
                                             <div className="flex justify-between text-[8px] text-zinc-700 font-bold uppercase tracking-widest">
-                                                <span>10 CR</span>
-                                                <span>100 CR</span>
+                                                <span>10 Credits</span>
+                                                <span>100 Credits</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl flex gap-4 items-start">
+                                <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-none flex gap-4 items-start">
                                     <Info className="text-indigo-500 shrink-0" size={18} />
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed">
-                                        Posting a request will lock the specified credits. These will be transferred to the guide upon successful synchronization.
+                                        Posting a request will hold the credits. They will be paid to the teacher once the lesson is complete.
                                     </p>
                                 </div>
 
@@ -172,12 +171,12 @@ const PostRequestModal = ({ isOpen, onClose }: PostRequestModalProps) => {
                                         {isSubmitting ? (
                                             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                                         ) : (
-                                            <>Broadcast Request <Send size={14} /></>
+                                            <>Post Request <Send size={14} /></>
                                         )}
                                     </GlowButton>
                                 </div>
                             </form>
-                        </GlassCard>
+                        </div>
                     </motion.div>
                 </div>
             )}

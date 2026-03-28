@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { Clock, DollarSign, Check, AlertCircle, Plus, Trash2, Calendar } from 'lucide-react';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 
 const Teach = () => {
     const { user } = useAuth();
@@ -79,8 +76,8 @@ const Teach = () => {
 
         try {
             if (!user) {
-                alert('Authorization required to broadcast protocols.');
-                setIsSubmitting(false); // Ensure submitting state is reset
+                alert('You need to login to share skills.');
+                setIsSubmitting(false);
                 return;
             }
 
@@ -89,7 +86,7 @@ const Teach = () => {
                 price: priceNum,
                 duration: parseInt(formData.duration),
                 creatorId: user.uid,
-                creatorName: user.displayName || user.email?.split('@')[0] || 'Peer',
+                creatorName: user.displayName || user.email?.split('@')[0] || 'Member',
                 isActive: true,
                 createdAt: serverTimestamp(),
                 objectives: formData.objectives.split(';').map(o => o.trim()).filter(o => o !== ''),
@@ -114,7 +111,7 @@ const Teach = () => {
             <div className="relative min-h-screen flex items-center justify-center p-6">
                 <AnimatedBackground />
                 <Navbar />
-                <GlassCard className="max-w-md w-full p-12 text-center bg-zinc-900 border-zinc-800 rounded-none border-t-4 border-t-indigo-600">
+                <div className="max-w-md w-full p-12 text-center bg-zinc-900 border border-zinc-800 rounded-none border-t-4 border-t-indigo-600 shadow-2xl">
                     <div className="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-indigo-500/30">
                         <Check className="text-indigo-500" size={40} />
                     </div>
@@ -123,37 +120,34 @@ const Teach = () => {
                     <GlowButton onClick={() => setSuccess(false)} variant="purple" fullWidth className="rounded-none font-bold uppercase tracking-widest text-[10px] py-4">
                         Initialize New Protocol
                     </GlowButton>
-                </GlassCard>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="relative min-h-screen pt-32 pb-20 px-6">
+        <div className="relative min-h-screen">
             <AnimatedBackground />
             <Navbar />
 
-            <div className="max-w-4xl mx-auto">
-                <div className="mb-12">
-                    <span className="text-indigo-500 font-bold uppercase tracking-[0.3em] text-[10px] mb-4 block">Instructional Interface</span>
-                    <h1 className="text-5xl md:text-6xl font-display font-bold text-white uppercase italic tracking-tighter leading-none mb-6">
-                        Define Your <span className="text-indigo-600">Sync Protocol</span>
+            <main className="pt-28 pb-12 px-6 max-w-4xl mx-auto">
+                <header className="mb-12">
+                    <h1 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight leading-none mb-4">
+                        Share Your Skills
                     </h1>
-                    <p className="text-zinc-500 max-w-2xl font-medium uppercase tracking-tight">
-                        Broadcast your mental models to the network. Set your parameters, define your value, and catalyze collective clarity.
-                    </p>
-                </div>
+                    <p className="text-zinc-500 text-lg font-medium">Create a new lesson and share your expertise with the community.</p>
+                </header>
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-8">
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none" hover={false}>
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-none shadow-xl">
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Protocol Title</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Lesson Title</label>
                                     <input
                                         required
                                         type="text"
-                                        placeholder="e.g., Recursion Fundamentals Synchronization"
+                                        placeholder="e.g., Recursion Fundamentals"
                                         className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-bold uppercase tracking-tight"
                                         value={formData.title}
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -161,11 +155,11 @@ const Teach = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Transmission Summary</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Lesson Summary</label>
                                     <textarea
                                         required
                                         rows={4}
-                                        placeholder="Briefly describe the mental model you will be transmitting..."
+                                        placeholder="Briefly describe what you will be teaching..."
                                         className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-4 px-4 text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-medium uppercase tracking-tight text-sm"
                                         value={formData.description}
                                         onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -173,7 +167,7 @@ const Teach = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Learning Objectives (Semicolon separated)</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">What you'll learn (Semicolon separated)</label>
                                     <input
                                         required
                                         type="text"
@@ -184,12 +178,12 @@ const Teach = () => {
                                     />
                                 </div>
                             </div>
-                        </GlassCard>
+                        </div>
 
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none" hover={false}>
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-none shadow-xl">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Categorization Tags</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Tags</label>
                                     <input
                                         type="text"
                                         placeholder="e.g., Computer Science, Algorithms"
@@ -199,7 +193,7 @@ const Teach = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Secure Meeting Link</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 ml-1">Meeting Link</label>
                                     <input
                                         required
                                         type="url"
@@ -210,10 +204,10 @@ const Teach = () => {
                                     />
                                 </div>
                             </div>
-                        </GlassCard>
+                        </div>
 
                         {/* Availability Manager */}
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none relative overflow-hidden" hover={false}>
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-none relative overflow-hidden shadow-xl">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16" />
                             
                             <div className="flex items-center justify-between mb-8 relative z-10">
@@ -222,8 +216,8 @@ const Teach = () => {
                                         <Calendar size={18} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-display font-bold text-white uppercase italic tracking-tighter">Availability Manager</h3>
-                                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Define Sync Windows</p>
+                                        <h3 className="text-xl font-display font-bold text-white tracking-tight">Availability</h3>
+                                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">When can you teach?</p>
                                     </div>
                                 </div>
                                 <button 
@@ -240,7 +234,7 @@ const Teach = () => {
                                     <div key={dateIdx} className="p-6 bg-zinc-950 border border-zinc-800 space-y-6">
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex-grow">
-                                                <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1 block">Protocol Date</label>
+                                                <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mb-1 block">Date</label>
                                                 <input 
                                                     type="date"
                                                     required
@@ -260,7 +254,7 @@ const Teach = () => {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest block">Synchronization Slots</label>
+                                            <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest block">Available Slots</label>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                                 {avail.slots.map((slot, slotIdx) => (
                                                     <div key={slotIdx} className="flex items-center gap-2">
@@ -293,11 +287,11 @@ const Teach = () => {
                                     </div>
                                 ))}
                             </div>
-                        </GlassCard>
+                        </div>
                     </div>
 
                     <div className="space-y-8">
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 rounded-none border-l-4 border-l-indigo-600" hover={false}>
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-none border-l-4 border-l-indigo-600 shadow-xl">
                             <div className="space-y-8">
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 flex items-center gap-2">
@@ -324,14 +318,14 @@ const Teach = () => {
 
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 flex items-center gap-2">
-                                        <DollarSign size={14} className="text-indigo-500" /> Protocol Value (1-100)
+                                        <DollarSign size={14} className="text-indigo-500" /> Lesson Price (1-100)
                                     </label>
                                     <div className="relative">
                                         <input
                                             type="number"
                                             min="1"
                                             max="100"
-                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-6 px-4 text-4xl text-white font-display font-bold text-center focus:outline-none focus:border-indigo-500/50 transition-all"
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-6 px-4 text-4xl text-white font-display font-bold text-center focus:outline-none focus:border-indigo-500/50 transition-all font-mono"
                                             value={formData.price}
                                             onChange={(e) => setFormData({...formData, price: e.target.value})}
                                         />
@@ -340,7 +334,7 @@ const Teach = () => {
                                     <div className="p-3 bg-zinc-950 border border-zinc-800 flex items-start gap-3">
                                         <AlertCircle className="text-indigo-500 shrink-0" size={14} />
                                         <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed">
-                                            Strict regulation: Sync sessions cannot exceed 100 base units.
+                                            Lessons cannot exceed 100 credits.
                                         </p>
                                     </div>
                                 </div>
@@ -352,19 +346,19 @@ const Teach = () => {
                                     className="rounded-none py-6 font-bold uppercase tracking-[0.2em] text-[11px]"
                                     disabled={isSubmitting}
                                 >
-                                    {isSubmitting ? 'Enciphering Protocol...' : 'Broadcast to Ledger'}
+                                    {isSubmitting ? 'Sharing...' : 'Share Lesson'}
                                 </GlowButton>
                             </div>
-                        </GlassCard>
+                        </div>
 
                         <div className="p-6 bg-indigo-600/5 border border-indigo-500/10 text-center">
                             <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
-                                By broadcasting, you agree to adhere to the high-frequency synchronization standards of the SkillTrader Protocol.
+                                By sharing, you agree to follow the community guidelines.
                             </p>
                         </div>
                     </div>
                 </form>
-            </div>
+            </main>
         </div>
     );
 };

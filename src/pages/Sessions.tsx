@@ -11,7 +11,6 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
@@ -92,10 +91,7 @@ const Sessions = () => {
             animate={{ opacity: 1, y: 0 }}
             className="group relative"
         >
-            <GlassCard 
-                className="p-6 bg-zinc-900/60 border-zinc-800 hover:border-indigo-500/30 transition-all rounded-none"
-                hover={true}
-            >
+            <div className="p-6 bg-zinc-900 border border-zinc-800 hover:border-indigo-500/30 transition-all rounded-none shadow-xl">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="flex items-start gap-6">
                         <div className="w-14 h-14 bg-zinc-950 border border-zinc-800 flex flex-col items-center justify-center rounded-none group-hover:border-indigo-500/30 transition-colors">
@@ -113,7 +109,7 @@ const Sessions = () => {
                                     "text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 border",
                                     type === 'learning' ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                 )}>
-                                    {type === 'learning' ? 'Acquisition' : 'Transmission'}
+                                    {type === 'learning' ? 'Learning' : 'Teaching'}
                                 </span>
                                 <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest flex items-center gap-1.5">
                                     <Clock size={10} className="text-indigo-500" /> {session.selectedSlot}
@@ -123,7 +119,7 @@ const Sessions = () => {
                                 {session.sessionTitle}
                             </h3>
                             <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-                                <User size={10} className="text-zinc-700" /> {type === 'learning' ? `Source: ${session.guideName}` : `Recipient: ${session.buyerEmail?.split('@')[0]}`}
+                                <User size={10} className="text-zinc-700" /> {type === 'learning' ? `Teacher: ${session.guideName}` : `Student: ${session.buyerEmail?.split('@')[0]}`}
                             </div>
                         </div>
                     </div>
@@ -162,7 +158,7 @@ const Sessions = () => {
                         </button>
                     </div>
                 </div>
-            </GlassCard>
+            </div>
         </motion.div>
     );
 
@@ -170,44 +166,42 @@ const Sessions = () => {
     const groupedData = activeTab === 'teaching' ? groupSessionsByDate(teachings) : { 'All Activities': learnings };
 
     return (
-        <div className="relative min-h-screen pt-32 pb-20 px-6">
+        <div className="relative min-h-screen">
             <AnimatedBackground />
             <Navbar />
 
-            <div className="max-w-5xl mx-auto">
-                <div className="mb-12">
-                    <span className="text-indigo-500 font-bold uppercase tracking-[0.3em] text-[10px] mb-4 block">Centralized Activity Ledger</span>
-                    <h1 className="text-5xl md:text-6xl font-display font-bold text-white uppercase italic tracking-tighter leading-none mb-6">
-                        Sync <span className="text-indigo-600">Sessions</span>
-                    </h1>
-                </div>
+            <main className="pt-28 pb-12 px-6 max-w-5xl mx-auto">
+                <header className="mb-12">
+                    <h1 className="text-4xl font-display font-bold text-white tracking-tight">My Lessons</h1>
+                    <p className="text-zinc-500 text-sm font-medium">Keep track of what you're learning and teaching.</p>
+                </header>
 
                 {/* Tab Navigation */}
                 <div className="flex items-center gap-8 mb-12 border-b border-zinc-900">
-                    <button
-                        onClick={() => setActiveTab('learning')}
-                        className={cn(
-                            "pb-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all relative",
-                            activeTab === 'learning' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
-                        )}
-                    >
-                        Learning Nodes
-                        {activeTab === 'learning' && (
-                            <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('teaching')}
-                        className={cn(
-                            "pb-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all relative",
-                            activeTab === 'teaching' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
-                        )}
-                    >
-                        Teaching Channels
-                        {activeTab === 'teaching' && (
-                            <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
-                        )}
-                    </button>
+                        <button
+                            onClick={() => setActiveTab('learning')}
+                            className={cn(
+                                "pb-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all relative",
+                                activeTab === 'learning' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
+                            )}
+                        >
+                            Learning
+                            {activeTab === 'learning' && (
+                                <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('teaching')}
+                            className={cn(
+                                "pb-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all relative",
+                                activeTab === 'teaching' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
+                            )}
+                        >
+                            Teaching
+                            {activeTab === 'teaching' && (
+                                <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
+                            )}
+                        </button>
                 </div>
 
                 {loading ? (
@@ -217,11 +211,11 @@ const Sessions = () => {
                 ) : activeData.length === 0 ? (
                     <div className="py-32 text-center border border-dashed border-zinc-900">
                         <div className="text-4xl mb-6 opacity-20">📡</div>
-                        <h3 className="text-white font-display font-bold uppercase italic text-xl mb-4">No Active Protocols</h3>
+                        <h3 className="text-white font-display font-bold text-xl mb-4">No Sessions Yet</h3>
                         <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest max-w-xs mx-auto leading-relaxed">
                             {activeTab === 'learning' 
-                                ? "You haven't acquired any mental models yet. Explore the marketplace to initialize synchronization."
-                                : "No transmission channels established. Switch to Teach Mode to share your concepts."}
+                                ? "You haven't booked any lessons yet. Find something to learn in the marketplace."
+                                : "You haven't shared any skills yet. Switch to teaching mode to start helping others."}
                         </p>
                         <GlowButton 
                             onClick={() => navigate(activeTab === 'learning' ? '/explore' : '/teach')}
@@ -252,7 +246,7 @@ const Sessions = () => {
                         ))}
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };

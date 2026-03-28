@@ -18,7 +18,6 @@ import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, limit, g
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
@@ -217,40 +216,40 @@ const Profile = () => {
 
             <main className="pt-28 pb-12 px-6 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    {/* Identity & Stats Column */}
+                    {/* Profile Information */}
                     <aside className="space-y-8">
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 relative overflow-hidden" hover={false}>
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 relative overflow-hidden rounded-none">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16" />
                             
                             <div className="flex flex-col items-center text-center space-y-6 relative z-10">
                                 <div className="relative group">
-                                    <div className="w-32 h-32 rounded-none bg-zinc-950 border-2 border-zinc-800 p-1 shadow-inner overflow-hidden">
+                                    <div className="w-32 h-32 rounded-full border-4 border-zinc-800 p-1 shadow-xl overflow-hidden">
                                         <img 
                                             src={profileUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${targetUid}`} 
                                             alt="Avatar" 
-                                            className="w-full h-full object-cover grayscale opacity-80" 
+                                            className="w-full h-full object-cover" 
                                         />
                                     </div>
                                     <button 
                                         onClick={() => setIsEditModalOpen(true)}
-                                        className="absolute -bottom-2 -right-2 bg-indigo-600 p-2 text-white hover:bg-indigo-500 transition-all border border-indigo-400 shadow-lg"
+                                        className="absolute bottom-0 right-0 bg-indigo-600 p-2 text-white hover:bg-indigo-500 rounded-full transition-all border border-indigo-400 shadow-lg"
                                     >
                                         <Edit3 size={14} />
                                     </button>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <h1 className="text-3xl font-display font-bold text-white uppercase tracking-tighter italic">
+                                    <h1 className="text-3xl font-display font-bold text-white tracking-tight">
                                         {profileUser?.displayName || profileUser?.email?.split('@')[0]}
                                     </h1>
                                     <div className="flex flex-col items-center gap-3">
-                                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-2">
-                                            <Shield size={12} className="text-indigo-500" /> Verified Sync Agent
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                            <Shield size={12} className="text-indigo-500" /> Verified Member
                                         </p>
                                         
                                         {isLearnedFrom && (
-                                            <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[8px] font-black uppercase tracking-[0.2em] animate-pulse">
-                                                Direct Academic Connection
+                                            <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-[8px] font-black uppercase tracking-widest">
+                                                Learned Together
                                             </div>
                                         )}
                                     </div>
@@ -258,13 +257,13 @@ const Profile = () => {
 
                                 <div className="flex items-center gap-8 py-2">
                                     <div className="text-center">
-                                        <div className="text-xl font-display font-bold text-white">{stats.followers}</div>
-                                        <div className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Followers</div>
+                                        <div className="text-2xl font-display font-bold text-white tracking-tighter">{stats.followers}</div>
+                                        <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Followers</div>
                                     </div>
-                                    <div className="w-[1px] h-8 bg-zinc-900" />
+                                    <div className="h-8 w-[1px] bg-zinc-800" />
                                     <div className="text-center">
-                                        <div className="text-xl font-display font-bold text-white">{stats.following}</div>
-                                        <div className="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.2em]">Following</div>
+                                        <div className="text-2xl font-display font-bold text-white tracking-tighter">{stats.following}</div>
+                                        <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Following</div>
                                     </div>
                                 </div>
 
@@ -284,36 +283,36 @@ const Profile = () => {
                                     </div>
                                 )}
 
-                                <div className="w-full pt-8 space-y-4 border-t border-zinc-900">
+                                <div className="w-full pt-6 border-t border-zinc-800 space-y-4">
                                     <div className="flex items-center gap-4 text-zinc-500">
                                         <Mail size={14} className="text-zinc-700" />
                                         <span className="text-[10px] font-bold uppercase tracking-widest">{profileUser?.email}</span>
                                     </div>
                                     <div className="flex items-center gap-4 text-zinc-500">
                                         <Clock size={14} className="text-zinc-700" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">Active Tier: Level 01</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Member Level: 1</span>
                                     </div>
                                 </div>
                             </div>
-                        </GlassCard>
+                        </div>
 
-                        {/* Credits Display */}
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800 border-l-4 border-l-indigo-600" hover={false}>
+                        {/* Wallet Display */}
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 border-l-4 border-l-indigo-600">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-6 flex items-center gap-2">
-                                <Zap size={14} className="text-indigo-500" /> Operational Credits
+                                <Zap size={14} className="text-indigo-500" /> Wallet Balance
                             </h4>
                             <div className="flex items-baseline gap-2">
                                 <span className="text-6xl font-display font-bold text-white tracking-tighter">{stats.credits}</span>
-                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Unit CR</span>
+                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Credits</span>
                             </div>
                             {isOwnProfile && (
                                 <GlowButton variant="glass" fullWidth size="lg" className="mt-8 rounded-none text-[10px] font-bold uppercase tracking-widest">
-                                    Expand Ledger
+                                    View History
                                 </GlowButton>
                             )}
-                        </GlassCard>
+                        </div>
 
-                        <GlassCard className="p-8 bg-zinc-900 border-zinc-800" hover={false}>
+                        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-none">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest mb-8 text-zinc-500">Mastery Badges</h4>
                             <div className="grid grid-cols-4 gap-3">
                                 {[...Array(8)].map((_, i) => (
@@ -325,22 +324,22 @@ const Profile = () => {
                                     </div>
                                 ))}
                             </div>
-                        </GlassCard>
+                        </div>
                     </aside>
 
                     {/* Interactive Tabbed Content */}
                     <div className="lg:col-span-2 space-y-8">
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                             <div>
-                                <h2 className="text-3xl font-display font-bold text-white uppercase italic tracking-tighter leading-none mb-2">
-                                    Synchronization <span className="text-indigo-600">Protocol</span>
+                                <h2 className="text-3xl font-display font-bold text-white tracking-tight leading-none mb-2">
+                                    Activity
                                 </h2>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Active Academic Exchange Ledger</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Your recent lessons and following</p>
                             </div>
 
                             <div className="flex bg-zinc-900/50 p-1 border border-zinc-900">
                                 {[
-                                    { id: 'ledger', label: 'Audit Ledger' },
+                                    { id: 'ledger', label: 'History' },
                                     { id: 'followers', label: 'Followers' },
                                     { id: 'following', label: 'Following' }
                                 ].map((tab) => (
@@ -368,12 +367,12 @@ const Profile = () => {
                                     </div>
                                 ) : transactions.length === 0 ? (
                                     <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
-                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">No sync history detected.</p>
+                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">No activity found.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
                                         {transactions.map((tx) => (
-                                            <GlassCard key={tx.id} className="p-5 bg-zinc-900/40 border-zinc-800 group rounded-none" hover={true}>
+                                            <div key={tx.id} className="p-5 bg-zinc-900/40 border border-zinc-800 group rounded-none hover:bg-zinc-900/80 transition-all shadow-lg">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-5">
                                                         <div className={cn(
@@ -396,7 +395,7 @@ const Profile = () => {
                                                         {tx.type === 'credit' ? '+' : '-'}{tx.amount}
                                                     </div>
                                                 </div>
-                                            </GlassCard>
+                                            </div>
                                         ))}
                                     </div>
                                 )
@@ -416,7 +415,7 @@ const Profile = () => {
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {(activeTab === 'followers' ? followerUsers : followingUsers).map((u) => (
-                                            <GlassCard key={u.uid} className="p-4 bg-zinc-900/60 border-zinc-800 flex items-center justify-between rounded-none" hover={true}>
+                                            <div key={u.uid} className="p-4 bg-zinc-900/60 border border-zinc-800 flex items-center justify-between rounded-none hover:bg-zinc-900/90 transition-all shadow-md">
                                                 <div className="flex items-center gap-4">
                                                     <div 
                                                         className="w-10 h-10 bg-zinc-950 border border-zinc-800 cursor-pointer overflow-hidden"
@@ -446,7 +445,7 @@ const Profile = () => {
                                                 >
                                                     Message
                                                 </GlowButton>
-                                            </GlassCard>
+                                            </div>
                                         ))}
                                     </div>
                                 )

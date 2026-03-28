@@ -6,14 +6,12 @@ import {
     MessageSquare,
     Clock, 
     ArrowRight,
-    Users,
     Sparkles
 } from 'lucide-react';
 import { collection, query, onSnapshot, orderBy, updateDoc, doc, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
@@ -133,12 +131,8 @@ const Community = () => {
 
             <main className="pt-28 px-6 max-w-5xl mx-auto">
                 <header className="mb-12">
-                    <div className="flex items-center gap-3 text-indigo-500 font-bold uppercase tracking-[0.3em] text-[10px] mb-4">
-                        <Users size={14} />
-                        <span>Social Hub</span>
-                    </div>
-                    <h1 className="text-5xl md:text-6xl font-display font-bold text-white tracking-tighter uppercase italic leading-none mb-8">
-                        Community <span className="text-indigo-600">Hub</span>
+                    <h1 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight leading-none mb-8">
+                        Community
                     </h1>
 
                     {/* Tab Switcher */}
@@ -150,7 +144,7 @@ const Community = () => {
                                 activeTab === 'discussions' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
                             )}
                         >
-                            Discussions & Intel
+                            Discussions
                             {activeTab === 'discussions' && (
                                 <motion.div layoutId="community-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
                             )}
@@ -162,7 +156,7 @@ const Community = () => {
                                 activeTab === 'requests' ? "text-indigo-500" : "text-zinc-600 hover:text-zinc-400"
                             )}
                         >
-                            Learning Requests
+                            Requests
                             {activeTab === 'requests' && (
                                 <motion.div layoutId="community-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
                             )}
@@ -174,15 +168,15 @@ const Community = () => {
                     {activeTab === 'discussions' ? (
                         <div className="space-y-12">
                             {/* Discussion Input */}
-                            <GlassCard className="p-4 bg-zinc-950 border-zinc-900 rounded-none border-l-2 border-indigo-600" hover={false}>
+                            <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-none border-l-2 border-indigo-600">
                                 <form onSubmit={handlePostDiscussion} className="flex gap-4">
                                     <div className="flex-grow relative">
                                         <input 
                                             type="text"
                                             value={newMessage}
                                             onChange={(e) => setNewMessage(e.target.value)}
-                                            placeholder="Ask or discuss anything with the network..."
-                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-none py-4 px-6 text-sm font-medium text-white placeholder:text-zinc-700 focus:outline-none focus:border-indigo-500/50 transition-all"
+                                            placeholder="Ask or discuss anything with the community..."
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-none py-4 px-6 text-sm font-medium text-white placeholder:text-zinc-700 focus:outline-none focus:border-indigo-500/50 transition-all font-mono"
                                         />
                                     </div>
                                     <GlowButton 
@@ -191,21 +185,21 @@ const Community = () => {
                                         variant="purple" 
                                         className="rounded-none px-8 font-bold uppercase tracking-widest text-[10px]"
                                     >
-                                        {isPosting ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : 'Broadcast'}
+                                        {isPosting ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : 'Post'}
                                     </GlowButton>
                                 </form>
-                            </GlassCard>
+                            </div>
 
                             {/* Discussions Feed */}
                             <div className="space-y-6">
                                 {discussions.length === 0 && !loading ? (
-                                    <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
-                                        <Sparkles className="mx-auto text-zinc-800 mb-6" size={48} />
-                                        <h3 className="text-zinc-100 font-display font-bold uppercase italic text-xl">Start the conversation 🚀</h3>
-                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mt-3 px-12 leading-relaxed max-w-md mx-auto">
-                                            The discussion ledger is currently empty. Initialize the narrative by broadcasting your first thought.
-                                        </p>
-                                    </div>
+                            <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
+                                <Sparkles className="mx-auto text-zinc-800 mb-6" size={48} />
+                                <h3 className="text-zinc-100 font-display font-bold text-xl">Start the conversation 🚀</h3>
+                                <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mt-3 px-12 leading-relaxed max-w-md mx-auto">
+                                    There are no posts yet. Be the first to share something with the community.
+                                </p>
+                            </div>
                                 ) : (
                                     <AnimatePresence mode="popLayout">
                                         {discussions.map((msg) => (
@@ -241,8 +235,8 @@ const Community = () => {
                         <div className="space-y-8">
                             <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-4">
                                 <div className="space-y-1">
-                                    <h3 className="text-xl font-display font-bold text-white tracking-tight uppercase italic">Active Requests</h3>
-                                    <p className="text-zinc-600 font-bold uppercase tracking-widest text-[9px]">Synchronize with peers seeking immediate concept validation.</p>
+                                    <h3 className="text-xl font-display font-bold text-white tracking-tight uppercase">Active Requests</h3>
+                                    <p className="text-zinc-600 font-bold uppercase tracking-widest text-[9px]">Help others with their learning requests.</p>
                                 </div>
                                 <GlowButton 
                                     onClick={() => setIsPostModalOpen(true)}
@@ -300,9 +294,9 @@ const Community = () => {
                                 ) : filteredRequests.length === 0 ? (
                                     <div className="py-24 text-center border border-dashed border-zinc-900 bg-zinc-900/10">
                                         <MessageSquare className="mx-auto text-zinc-800 mb-6" size={48} />
-                                        <h3 className="text-zinc-100 font-display font-bold uppercase italic text-xl">Ask your first doubt 🔥</h3>
+                                        <h3 className="text-zinc-100 font-display font-bold text-xl">Ask your first doubt 🔥</h3>
                                         <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mt-3 px-12 leading-relaxed max-w-md mx-auto">
-                                            The requests ledger is currently idle. Post a synchronization request to initialize the peer-to-peer network.
+                                            No requests yet. Be the first to ask for help!
                                         </p>
                                     </div>
                                 ) : (
@@ -315,7 +309,7 @@ const Community = () => {
                                                 exit={{ opacity: 0, scale: 0.98 }}
                                                 layout
                                             >
-                                                <GlassCard className="p-6 bg-zinc-900/40 border-zinc-800 hover:border-indigo-500/20 transition-all rounded-none overflow-hidden relative group">
+                                                <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-none shadow-xl">
                                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                                                         <div className="space-y-3 flex-grow">
                                                             <div className="flex items-center gap-3">
@@ -323,10 +317,10 @@ const Community = () => {
                                                                     <Clock size={12} /> {formatTime(request.createdAt)}
                                                                 </span>
                                                                 <div className="w-1 h-1 rounded-full bg-zinc-800" />
-                                                                <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-[0.2em]">Open Sync</span>
+                                                                <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-[0.2em]">Open Request</span>
                                                             </div>
-                                                            <h4 className="text-lg font-bold text-white uppercase tracking-tight group-hover:text-indigo-400 transition-colors uppercase italic">{request.title}</h4>
-                                                            <p className="text-xs text-zinc-500 leading-relaxed font-medium uppercase tracking-tight">{request.description}</p>
+                                                            <h4 className="text-lg font-bold text-white tracking-tight group-hover:text-indigo-400 transition-colors">{request.title}</h4>
+                                                            <p className="text-xs text-zinc-500 leading-relaxed font-medium tracking-tight">{request.description}</p>
                                                             <div className="flex flex-wrap gap-2 pt-2">
                                                                 {request.tags?.map((tag: string) => (
                                                                     <span key={tag} className="px-2 py-0.5 bg-zinc-950 border border-zinc-900 text-[8px] font-bold text-zinc-600 uppercase tracking-widest rounded-none">
@@ -344,7 +338,7 @@ const Community = () => {
                                                             {request.createdBy !== user?.uid ? (
                                                                 <GlowButton 
                                                                     onClick={() => {
-                                                                        if (window.confirm('Accept this synchronization challenge?')) {
+                                                                        if (window.confirm('Accept this request?')) {
                                                                             handleAcceptRequest(request.id);
                                                                         }
                                                                     }}
@@ -361,7 +355,7 @@ const Community = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                </GlassCard>
+                                                </div>
                                             </motion.div>
                                         ))}
                                     </AnimatePresence>

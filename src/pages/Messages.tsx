@@ -10,7 +10,6 @@ import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp,
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
-import GlassCard from '../components/ui/GlassCard';
 import GlowButton from '../components/ui/GlowButton';
 import AnimatedBackground from '../components/ui/AnimatedBackground';
 import { cn } from '../utils/cn';
@@ -57,21 +56,21 @@ const Messages = () => {
                     
                     // Fetch other user's basic info for the list
                     const otherUserSnap = await getDoc(doc(db, 'users', otherUserId));
-                    const otherUserData = otherUserSnap.exists() ? otherUserSnap.data() : { name: 'Unknown Agent', photoURL: '' };
+                    const otherUserData = otherUserSnap.exists() ? otherUserSnap.data() : { name: 'User', photoURL: '' };
 
                     return {
                         id: chatDoc.id,
                         ...data,
                         otherUser: {
                             uid: otherUserId,
-                            name: otherUserData.displayName || otherUserData.name || 'Unknown Agent',
+                            name: otherUserData.displayName || otherUserData.name || 'User',
                             avatar: otherUserData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`
                         }
                     };
                 }));
                 setChats(chatsData);
             } catch (error) {
-                console.error("Synchronization error in chat registry:", error);
+                console.error("Chat loading error:", error);
             } finally {
                 setLoading(false);
             }
@@ -119,7 +118,7 @@ const Messages = () => {
                         const data = snap.data();
                         setActiveChatUser({
                             uid: otherUserId,
-                            name: data.displayName || data.name || 'Unknown Agent',
+                            name: data.displayName || data.name || 'User',
                             avatar: data.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`
                         });
                     }
@@ -156,7 +155,7 @@ const Messages = () => {
             
             // Note: In real app, update chatDoc.updatedAt too
         } catch (error) {
-            console.error("Transmission error:", error);
+            console.error("Message send error:", error);
         }
     };
 
@@ -174,18 +173,18 @@ const Messages = () => {
                     activeChatId ? "hidden md:flex" : "flex"
                 )}>
                     <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-2xl font-display font-bold text-white uppercase italic tracking-tighter">Messages</h2>
-                        <span className="bg-indigo-600/20 text-indigo-500 text-[9px] font-bold px-2 py-0.5 border border-indigo-500/20 uppercase">Sync Live</span>
+                        <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tighter">Messages</h2>
+                        <span className="bg-indigo-600/20 text-indigo-500 text-[9px] font-bold px-2 py-0.5 border border-indigo-500/20 uppercase">Chatting</span>
                     </div>
 
-                    <GlassCard className="flex-grow bg-zinc-950 border-zinc-900 rounded-none overflow-hidden flex flex-col" hover={false}>
+                    <div className="flex-grow bg-zinc-950 border border-zinc-900 rounded-none overflow-hidden flex flex-col shadow-2xl">
                         <div className="p-4 border-b border-zinc-900 bg-zinc-900/10">
-                            <div className="relative group">
-                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-700" size={14} />
+                            <div className="relative">
+                                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-700" size={14} />
                                 <input 
-                                    type="text" 
-                                    placeholder="SEARCH AGENTS..." 
-                                    className="w-full bg-zinc-900/50 border border-zinc-900 rounded-none py-2 pl-9 pr-4 text-[9px] font-bold uppercase tracking-widest text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-all font-mono"
+                                    type="text"
+                                    placeholder="Search messages..."
+                                    className="w-full bg-zinc-950 border border-zinc-900 px-12 py-3 text-[10px] font-bold uppercase tracking-widest text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-500/50 transition-colors"
                                 />
                             </div>
                         </div>
@@ -199,7 +198,7 @@ const Messages = () => {
                                 <div className="py-20 text-center px-6">
                                     <MessageSquare className="mx-auto text-zinc-900 mb-4" size={32} />
                                     <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest leading-relaxed">
-                                        No active synchronization channels detected.<br/>
+                                        No active conversations.<br/>
                                         <span className="text-zinc-800">Start a conversation from profile or sessions.</span>
                                     </p>
                                 </div>
@@ -227,7 +226,7 @@ const Messages = () => {
                                 ))
                             )}
                         </div>
-                    </GlassCard>
+                    </div>
                 </aside>
 
                 {/* Chat Window Column */}
@@ -249,14 +248,14 @@ const Messages = () => {
                                     <div className="flex flex-col">
                                         <span className="text-[11px] font-bold text-white uppercase tracking-widest">{activeChatUser.name}</span>
                                         <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Active Synchronous</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Active Now</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex gap-4">
                                     <GlowButton variant="glass" size="sm" className="h-8 px-4 text-[8px] font-black uppercase tracking-widest" onClick={() => navigate(`/profile/${activeChatUser.uid}`)}>
-                                        View Identity
+                                        View Profile
                                     </GlowButton>
                                 </div>
                             </header>
@@ -304,8 +303,8 @@ const Messages = () => {
                                         type="text" 
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Broadcast message to agent..." 
-                                        className="flex-grow bg-zinc-900 border border-zinc-800 rounded-none py-4 px-6 text-xs font-bold text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-600/50 uppercase tracking-tight"
+                                        placeholder="Type a message..." 
+                                        className="flex-grow bg-zinc-900 border border-zinc-800 rounded-none py-4 px-6 text-xs font-bold text-white placeholder:text-zinc-800 focus:outline-none focus:border-indigo-600/50 tracking-tight"
                                     />
                                     <GlowButton 
                                         type="submit"
@@ -325,10 +324,10 @@ const Messages = () => {
                                     <MessageSquare size={32} className="text-zinc-800" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-2xl font-display font-bold text-white uppercase italic tracking-tighter">Initialize Link</h3>
+                                    <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tighter">Messages</h3>
                                     <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
-                                        Select a peer synchronization channel from the ledger to begin 1:1 secure communication. 
-                                        Only agents with shared academic history are accessible.
+                                        Select a conversation to start messaging. 
+                                        Your private chats will appear here.
                                     </p>
                                 </div>
                             </div>
