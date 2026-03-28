@@ -195,7 +195,7 @@ const Profile = () => {
         await setDoc(doc(db, 'chats', chatId), {
             participants: [initiator.uid, recipientUid],
             updatedAt: serverTimestamp(),
-            lastMessage: 'Synchronization context established.'
+            lastMessage: 'Say hi!'
         });
         
         navigate(`/messages?chatId=${chatId}`);

@@ -6,7 +6,7 @@ import {
     Search as SearchIcon,
     ArrowLeft
 } from 'lucide-react';
-import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/ui/Navbar';
@@ -16,7 +16,7 @@ import { cn } from '../utils/cn';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Messages = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const activeChatId = searchParams.get('chatId');
@@ -30,7 +30,7 @@ const Messages = () => {
 
     // Initial Fetch: Active Chats
     useEffect(() => {
-        console.log("User UID:", user?.uid);
+        if (authLoading) return;
         if (!user) {
             setLoading(false);
             return;
@@ -42,38 +42,42 @@ const Messages = () => {
             orderBy('updatedAt', 'desc')
         );
 
-        const unsubscribe = onSnapshot(chatsQuery, async (snapshot) => {
-            try {
-                if (snapshot.empty) {
-                    setChats([]);
+        const unsubscribe = onSnapshot(chatsQuery, (snapshot) => {
+            const fetchChatData = async () => {
+                try {
+                    if (snapshot.empty) {
+                        setChats([]);
+                        setLoading(false);
+                        return;
+                    }
+
+                    const chatsData = await Promise.all(snapshot.docs.map(async (chatDoc) => {
+                        const data = chatDoc.data();
+                        const otherUserId = data.participants.find((id: string) => id !== user.uid);
+                        
+                        // Fetch other user's basic info for the list
+                        const otherUserSnap = await getDoc(doc(db, 'users', otherUserId));
+                        const otherUserData = otherUserSnap.exists() ? otherUserSnap.data() : { name: 'User', photoURL: '' };
+
+                        return {
+                            id: chatDoc.id,
+                            ...data,
+                            otherUser: {
+                                uid: otherUserId,
+                                name: otherUserData.displayName || otherUserData.name || 'User',
+                                avatar: otherUserData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`
+                            }
+                        };
+                    }));
+                    setChats(chatsData);
+                } catch (error) {
+                    console.error("Chat loading error:", error);
+                } finally {
                     setLoading(false);
-                    return;
                 }
-
-                const chatsData = await Promise.all(snapshot.docs.map(async (chatDoc) => {
-                    const data = chatDoc.data();
-                    const otherUserId = data.participants.find((id: string) => id !== user.uid);
-                    
-                    // Fetch other user's basic info for the list
-                    const otherUserSnap = await getDoc(doc(db, 'users', otherUserId));
-                    const otherUserData = otherUserSnap.exists() ? otherUserSnap.data() : { name: 'User', photoURL: '' };
-
-                    return {
-                        id: chatDoc.id,
-                        ...data,
-                        otherUser: {
-                            uid: otherUserId,
-                            name: otherUserData.displayName || otherUserData.name || 'User',
-                            avatar: otherUserData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`
-                        }
-                    };
-                }));
-                setChats(chatsData);
-            } catch (error) {
-                console.error("Chat loading error:", error);
-            } finally {
-                setLoading(false);
-            }
+            };
+            
+            fetchChatData();
         }, (error) => {
             console.error("Firestore onSnapshot error:", error);
             setLoading(false);
@@ -142,6 +146,12 @@ const Messages = () => {
                 senderId: user.uid,
                 text,
                 createdAt: serverTimestamp()
+            });
+
+            // Update parent doc for list ordering & last message snapshot
+            await updateDoc(doc(db, 'chats', activeChatId), {
+                lastMessage: text,
+                updatedAt: serverTimestamp()
             });
 
             await addDoc(collection(db, 'notifications'), {
