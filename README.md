@@ -1,7 +1,7 @@
 # SkillTrader
 
-![UI Overview Placeholder](<img width="1709" height="896" alt="image" src="https://github.com/user-attachments/assets/cd7fa22d-47e5-4d57-8878-504565f5139f" />
-)
+<img width="1709" height="896" alt="image" src="https://github.com/user-attachments/assets/cd7fa22d-47e5-4d57-8878-504565f5139f" />
+
 
 SkillTrader is a modern, social-first learning ecosystem designed to connect students, teachers, and skill-seekers. Built with a premium, robust dark-mode aesthetic and optimized for high user engagement, the platform breaks away from technical SaaS jargon to offer a highly intuitive peer-to-peer educational environment.
 
@@ -11,16 +11,23 @@ SkillTrader is a modern, social-first learning ecosystem designed to connect stu
 - **Student & Teacher Ecosystem**: Discover lessons, follow top members, and build your own learning community.
 - **Dynamic Community Hub**: Participate in open discussions or post specific structured learning requests.
 - **Follow System**: A bidirectional following architecture allowing users to cultivate an academic network.
+<img width="1710" height="993" alt="image" src="https://github.com/user-attachments/assets/63244640-18bd-4f10-ba41-82091ecda4db" />
+
 
 ### 💬 Real-Time Messaging
 - **Modern Chat Interface**: A split-screen, highly responsive direct messaging UI natively inspired by Telegram and WhatsApp.
 - **Smart Text-Area**: Seamless keyboard shortcuts (`Enter` to send, `Shift+Enter` for new lines).
 - **In-Bubble Metadata**: Integrated timestamps, read-receipt placeholders, and dynamic online statuses ensure clear context.
+<img width="1708" height="987" alt="image" src="https://github.com/user-attachments/assets/bfaaba73-8ea7-4d66-b002-f7ae07408205" />
+
 
 ### 📅 Session Bookings
 - **1-to-Many Group Booking**: Break away from single 1:1 slot locking. Multiple learners can book the same session seamlessly.
 - **Teacher Availability Controls**: Creators control exact dates and time slots for their classes.
 - **Instant Booking Management**: Browse classes dynamically via the Explore index and lock in your syncs instantly.
+<img width="1710" height="720" alt="image" src="https://github.com/user-attachments/assets/7cf3f779-6701-4d22-8e42-a1846e561aa2" />
+<img width="1710" height="993" alt="image" src="https://github.com/user-attachments/assets/9f27c51c-7cfc-4389-90ca-e68e3453f683" />
+
 
 ### 🔐 Secure & Protected
 - **Firebase Authentication**: Full Google Auth integration with stringent private-route protections.
