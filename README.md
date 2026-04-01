@@ -1,6 +1,7 @@
 # SkillTrader
 
-![UI Overview Placeholder](public/vite.svg)
+![UI Overview Placeholder](<img width="1709" height="896" alt="image" src="https://github.com/user-attachments/assets/cd7fa22d-47e5-4d57-8878-504565f5139f" />
+)
 
 SkillTrader is a modern, social-first learning ecosystem designed to connect students, teachers, and skill-seekers. Built with a premium, robust dark-mode aesthetic and optimized for high user engagement, the platform breaks away from technical SaaS jargon to offer a highly intuitive peer-to-peer educational environment.
 
