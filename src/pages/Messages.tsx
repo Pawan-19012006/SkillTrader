@@ -234,7 +234,7 @@ const Messages = () => {
                                             )}
                                         >
                                             <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden relative">
-                                                <img src={chat.otherUser.avatar} className="w-full h-full object-cover" alt="" />
+                                                <img src={chat.otherUser.avatar} referrerPolicy="no-referrer" className="w-full h-full object-cover" alt="" />
                                                 {/* Online indicator could go here */}
                                             </div>
                                             <div className="flex-grow text-left overflow-hidden flex flex-col justify-center">
@@ -281,7 +281,7 @@ const Messages = () => {
                                         <ArrowLeft size={18} />
                                     </button>
                                     <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-                                        <img src={activeChatUser.avatar} className="w-full h-full object-cover" alt="" />
+                                        <img src={activeChatUser.avatar} referrerPolicy="no-referrer" className="w-full h-full object-cover" alt="" />
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-white tracking-tight">{activeChatUser.name}</span>

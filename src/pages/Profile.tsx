@@ -227,6 +227,7 @@ const Profile = () => {
                                         <img 
                                             src={profileUser?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${targetUid}`} 
                                             alt="Avatar" 
+                                            referrerPolicy="no-referrer"
                                             className="w-full h-full object-cover" 
                                         />
                                     </div>
@@ -423,6 +424,7 @@ const Profile = () => {
                                                     >
                                                         <img 
                                                             src={u.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.uid}`} 
+                                                            referrerPolicy="no-referrer"
                                                             className="w-full h-full object-cover grayscale opacity-80" alt="" 
                                                         />
                                                     </div>

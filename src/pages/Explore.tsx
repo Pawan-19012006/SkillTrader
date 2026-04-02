@@ -155,7 +155,7 @@ const Explore = () => {
 
                                                 <div className="flex items-center gap-2.5 text-zinc-500 text-xs mb-6 font-bold uppercase tracking-widest">
                                                     <div className="w-5 h-5 rounded-md bg-zinc-800 border border-zinc-700 overflow-hidden shadow-inner">
-                                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session.creatorName}`} alt={session.creatorName} />
+                                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session.creatorName}`} alt={session.creatorName} referrerPolicy="no-referrer" />
                                                     </div>
                                                     Guide: <span className="text-zinc-400">{session.creatorName}</span>
                                                 </div>

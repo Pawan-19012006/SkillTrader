@@ -264,7 +264,7 @@ const SessionDetails = () => {
                                     <div className="text-center mb-8">
                                         <div className="w-24 h-24 mx-auto mb-6 bg-zinc-950 border border-zinc-800 p-1">
                                             <div className="w-full h-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-                                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session.creatorName}`} alt={session.creatorName} className="w-full h-full object-cover" />
+                                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session.creatorName}`} alt={session.creatorName} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                             </div>
                                         </div>
                                         <h3 className="text-2xl font-display font-bold text-white tracking-tight uppercase">{session.creatorName}</h3>

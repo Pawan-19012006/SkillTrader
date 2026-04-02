@@ -79,7 +79,7 @@ const Navbar = () => {
                                 </div>
                                 <div className="w-9 h-9 border border-zinc-800 p-0.5 bg-zinc-900 group-hover:border-indigo-500 transition-colors">
                                     {user.photoURL ? (
-                                        <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
+                                        <img src={user.photoURL} alt={user.displayName || ''} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-9 bg-zinc-800 flex items-center justify-center text-zinc-500">
                                             <UserIcon size={16} />
@@ -147,7 +147,7 @@ const Navbar = () => {
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 border border-zinc-800 p-0.5 bg-zinc-900">
                                             {user.photoURL ? (
-                                                <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" />
+                                                <img src={user.photoURL} alt={user.displayName || ''} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500">
                                                     <UserIcon size={20} />

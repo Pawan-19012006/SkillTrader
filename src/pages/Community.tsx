@@ -211,7 +211,7 @@ const Community = () => {
                                             >
                                                 <div className="group flex gap-6 p-6 bg-zinc-900/30 border border-zinc-800 hover:border-zinc-700 transition-all rounded-none">
                                                     <div className="w-12 h-12 bg-zinc-950 border border-zinc-800 p-0.5 shrink-0">
-                                                        <img src={msg.creatorAvatar} alt={msg.creatorName} className="w-full h-full object-cover rounded opacity-80" />
+                                                        <img src={msg.creatorAvatar} alt={msg.creatorName} referrerPolicy="no-referrer" className="w-full h-full object-cover rounded opacity-80" />
                                                     </div>
                                                     <div className="flex-grow space-y-2">
                                                         <div className="flex items-center justify-between">
